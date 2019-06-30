@@ -25,7 +25,7 @@ namespace NoFrillSMF.Chunks
 
         public void Write(Stream data)
         {
-            throw new NotImplementedException();
+            data.Write(chunkData, 0, chunkData.Length);
         }
 
         public void Parse()

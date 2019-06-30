@@ -9,10 +9,15 @@ namespace NoFrillSMF.Console
     {
         static void Main(string[] args)
         {
+            MidiFile reader = new MidiFile();
+
             using (Stream file = File.OpenRead(args[0]))
             {
-                MidiFile reader = new MidiFile(file);
-                reader.ParseData();
+                reader.ReadData(file);
+            }
+            using (Stream file = File.OpenWrite(args[1]))
+            {
+                reader.WriteData(file);
             }
         }
     }

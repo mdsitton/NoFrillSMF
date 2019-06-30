@@ -4,27 +4,19 @@ using System.Collections.Generic;
 using System.IO;
 
 using NoFrillSMF.Chunks;
+using System.Text;
 
 namespace NoFrillSMF
 {
     public class MidiFile
     {
-        private readonly Stream data;
-
         protected List<IChunk> chunks = new List<IChunk>();
 
-        public MidiFile(byte[] data)
+        public void ReadData(Stream data)
         {
-            this.data = new MemoryStream(data);
-        }
+            if (!data.CanRead)
+                throw new NotSupportedException("Stream does not support reading.");
 
-        public MidiFile(Stream data)
-        {
-            this.data = data;
-        }
-
-        public bool ParseData()
-        {
             long fileSize = data.Length;
 
             IChunk chunk;
@@ -50,8 +42,29 @@ namespace NoFrillSMF
                 chunkCount++;
                 Console.WriteLine(chunkCount);
             }
+        }
 
-            return true;
+        public void WriteData(Stream data)
+        {
+            if (!data.CanWrite)
+                throw new NotSupportedException("Stream does not support reading.");
+
+            if (chunks.Count == 0 && (chunks[0] as HeaderChunk) == null)
+            {
+                throw new FormatException("Header chunk not found");
+            }
+
+            foreach (IChunk chunk in chunks)
+            {
+                // TODO - Split these out into Utilities
+                data.Write(Encoding.ASCII.GetBytes(chunk.TypeStr), 0, 4);
+
+                byte[] lengthData = BitConverter.GetBytes(chunk.Length);
+                Array.Reverse(lengthData, 0, 4);
+                data.Write(lengthData, 0, 4);
+
+                chunk.Write(data);
+            }
         }
     }
 }
