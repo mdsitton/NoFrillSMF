@@ -12,7 +12,7 @@ namespace NoFrillSMF.Chunks
                 case "MTrk":
                     return new TrackChunk();
                 default:
-                    return null;
+                    return new UnknownChunk(typeString);
             }
         }
     }

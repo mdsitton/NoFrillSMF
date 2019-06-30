@@ -3,13 +3,18 @@ using System.IO;
 
 namespace NoFrillSMF.Chunks
 {
-    public class TrackChunk : IChunk
+    public class UnknownChunk : IChunk
     {
-        public string TypeStr => "MTrk";
+        public string TypeStr { get; private set; }
 
         public uint Length { get; private set; }
 
         protected byte[] chunkData;
+
+        public UnknownChunk(string typeStr)
+        {
+            TypeStr = typeStr;
+        }
 
         public void Read(Stream data, uint chunkLength)
         {

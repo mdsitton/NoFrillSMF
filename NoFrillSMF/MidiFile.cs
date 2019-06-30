@@ -1,13 +1,12 @@
-﻿using System;
+﻿using System.Security.Authentication.ExtendedProtection;
+using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 
 using NoFrillSMF.Chunks;
 
 namespace NoFrillSMF
 {
-
     public class MidiFile
     {
         private readonly Stream data;
@@ -30,26 +29,25 @@ namespace NoFrillSMF
 
             IChunk chunk;
             byte[] dataBuffer = new byte[4];
-            UInt32 chunkLength;
             int chunkCount = 0;
 
             while (data.Position < fileSize)
             {
-                data.Read(dataBuffer, 0, 4);
-                string str = Encoding.ASCII.GetString(dataBuffer);
+                string str = data.ReadString(dataBuffer, size: 4);
+                UInt32 chunkLength = data.ReadUInt32(dataBuffer, flipEndianness: true);
 
-                data.Read(dataBuffer, 0, 4);
-                Array.Reverse(dataBuffer);
-                chunkLength = BitConverter.ToUInt32(dataBuffer, 0);
+                if (chunkLength > fileSize)
+                {
+                    // TODO - Turn this into an exception?
+                    Console.WriteLine("WARNING: Chunk size beyond end of stream, ignoring chunk.");
+                    break;
+                }
 
                 chunk = ChunkMappings.ChunkFactory(str);
 
-                if (chunk != null)
-                {
-                    chunk.Read(data, chunkLength);
-                    chunks.Add(chunk);
-                    chunkCount++;
-                }
+                chunk.Read(data, chunkLength);
+                chunks.Add(chunk);
+                chunkCount++;
                 Console.WriteLine(chunkCount);
             }
 

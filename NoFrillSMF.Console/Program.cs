@@ -11,7 +11,7 @@ namespace NoFrillSMF.Console
         {
             using (Stream file = File.OpenRead(args[0]))
             {
-                SmfReader reader = new SmfReader(file);
+                MidiFile reader = new MidiFile(file);
                 reader.ParseData();
             }
         }

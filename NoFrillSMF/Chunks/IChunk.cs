@@ -10,5 +10,8 @@ namespace NoFrillSMF.Chunks
 
         void Read(Stream data, UInt32 chunkLength);
         void Write(Stream data);
+
+        void Parse();
+        byte[] Compose();
     }
 }
