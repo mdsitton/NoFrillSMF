@@ -8,17 +8,18 @@ using NoFrillSMF.Chunks;
 namespace NoFrillSMF
 {
 
-    public class SmfReader
+    public class MidiFile
     {
         private readonly Stream data;
 
         protected List<IChunk> chunks = new List<IChunk>();
 
-        public SmfReader(byte[] data)
+        public MidiFile(byte[] data)
         {
             this.data = new MemoryStream(data);
         }
-        public SmfReader(Stream data)
+
+        public MidiFile(Stream data)
         {
             this.data = data;
         }
@@ -30,7 +31,7 @@ namespace NoFrillSMF
             IChunk chunk;
             byte[] dataBuffer = new byte[4];
             UInt32 chunkLength;
-            int chunks = 0;
+            int chunkCount = 0;
 
             while (data.Position < fileSize)
             {
@@ -46,9 +47,10 @@ namespace NoFrillSMF
                 if (chunk != null)
                 {
                     chunk.Read(data, chunkLength);
-                    chunks++;
+                    chunks.Add(chunk);
+                    chunkCount++;
                 }
-                Console.WriteLine(chunks);
+                Console.WriteLine(chunkCount);
             }
 
             return true;
