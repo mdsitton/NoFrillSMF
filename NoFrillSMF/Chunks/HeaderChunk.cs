@@ -10,10 +10,10 @@ namespace NoFrillSMF.Chunks
         public UInt32 Length { get; private set; }
         public UInt16 Format { get; private set; }
         public UInt16 TrackCount { get; private set; }
-        public UInt16 RawDivision { get; private set; }
-        public UInt16 Division { get; private set; }
+        private UInt16 rawDivision;
+        public UInt16 Division => (UInt16)(rawDivision & ~0x8000);
 
-        public bool IsSmpte => throw new NotImplementedException();
+        public bool IsSmpte => (rawDivision & 0x8000) != 0;
 
         protected byte[] chunkData;
 
@@ -35,7 +35,7 @@ namespace NoFrillSMF.Chunks
             byte[] scratchBuffer = new byte[4];
             Format = chunkData.ReadUInt16(ref position, scratchBuffer, flipEndianness: true);
             TrackCount = chunkData.ReadUInt16(ref position, scratchBuffer, flipEndianness: true);
-            RawDivision = chunkData.ReadUInt16(ref position, scratchBuffer, flipEndianness: true);
+            rawDivision = chunkData.ReadUInt16(ref position, scratchBuffer, flipEndianness: true);
         }
 
         public byte[] Compose()
