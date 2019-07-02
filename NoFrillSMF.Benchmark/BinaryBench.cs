@@ -37,6 +37,14 @@ namespace NoFrillSMF.Benchmark
             return flipEndianness ? BinaryPrimitives.ReverseEndianness(val) : val;
         }
 
+        public static UInt32 ReadUInt32_3(this Stream data, byte[] scratch, bool flipEndianness)
+        {
+            data.Read(scratch, 0, 4);
+            var val = BitConverter.ToUInt32(scratch, 0);
+
+            return flipEndianness ? SwapUInt32(val) : val;
+        }
+
         public static uint SwapUInt32(uint i)
         {
             return ((i & 0xFF000000) >> 24) | ((i & 0x00FF0000) >> 8) | ((i & 0x0000FF00) << 8) | ((i & 0x000000FF) << 24);
@@ -116,6 +124,19 @@ namespace NoFrillSMF.Benchmark
             for (int i = 0; i < itemCount; ++i)
             {
                 outData[i] = data.ReadUInt32_2(scratch, true);
+            }
+            return outData;
+        }
+
+        UInt32[] ReadDataBitConverter3(Stream data, int itemCount)
+        {
+            byte[] scratch = new byte[4];
+
+            UInt32[] outData = new UInt32[itemCount];
+
+            for (int i = 0; i < itemCount; ++i)
+            {
+                outData[i] = data.ReadUInt32_3(scratch, true);
             }
             return outData;
         }
@@ -206,6 +227,13 @@ namespace NoFrillSMF.Benchmark
         {
             ms.Position = 0;
             UInt32[] values1 = ReadDataBitConverter2(ms, itemCount);
+        }
+
+        [Benchmark]
+        public void BitConverter3PerformanceTest()
+        {
+            ms.Position = 0;
+            UInt32[] values1 = ReadDataBitConverter3(ms, itemCount);
         }
 
         [Benchmark]
