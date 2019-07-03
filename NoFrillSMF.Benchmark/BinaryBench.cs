@@ -1,8 +1,10 @@
+using System.Linq;
 using System.Diagnostics;
 using BenchmarkDotNet.Attributes;
 using System;
 using System.Buffers.Binary;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace NoFrillSMF.Benchmark
 {
@@ -45,16 +47,40 @@ namespace NoFrillSMF.Benchmark
             return flipEndianness ? SwapUInt32(val) : val;
         }
 
-        public static uint SwapUInt32(uint i)
+
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // public static UInt32 ReadUInt32Unsafe(this MemoryStream data)
+        // {
+        //     unsafe
+        //     {
+        //         fixed (byte* start = data.GetBuffer())
+        //         {
+
+        //             UInt32* current = (UInt32*)(start + data.Position);
+        //             data.Position += 4;
+        //             return BinaryUtilities.SwapUInt32(*current);
+        //         }
+        //     }
+        // }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UInt32 SwapUInt32(UInt32 i)
         {
-            return ((i & 0xFF000000) >> 24) | ((i & 0x00FF0000) >> 8) | ((i & 0x0000FF00) << 8) | ((i & 0x000000FF) << 24);
+            UInt32 tmp = (i << 16) | ((i >> 16) & 0x00ffff);
+            return ((tmp >> 8) & 0x00ff00ff) | ((tmp & 0x00ff00ff) << 8);
+        }
+
+        public static UInt32 ShiftyReadUInt32BE(this Stream data, byte[] scratch)
+        {
+            data.Read(scratch, 0, 4);
+            return (UInt32)scratch[0] | (UInt32)scratch[1] << 8 | (UInt32)scratch[2] << 16 | (UInt32)scratch[3] << 24;
         }
 
     }
 
     public class DataTest
     {
-        UInt32[] values;//(UInt32)UnityEngine.Random.Range(0, Int32.MaxValue);
+        public UInt32[] values;//(UInt32)UnityEngine.Random.Range(0, Int32.MaxValue);
 
         public void SetData(UInt32[] data) => values = data;
 
@@ -70,6 +96,7 @@ namespace NoFrillSMF.Benchmark
     [MonoJob, CoreJob]
     public class BinaryBench
     {
+        DataTest test;
         private MemoryStream ms;
         private BinaryReader br;
         private int itemCount;
@@ -91,7 +118,7 @@ namespace NoFrillSMF.Benchmark
         public void SetupData()
         {
             itemCount = 100;
-            DataTest test = new DataTest();
+            test = new DataTest();
             test.SetData(GenerateRandomValues(itemCount));
             ms = new MemoryStream();
             br = new BinaryReader(ms);
@@ -141,6 +168,33 @@ namespace NoFrillSMF.Benchmark
             return outData;
         }
 
+        UInt32[] ReadDataBitConverter_noswap(Stream data, int itemCount)
+        {
+            byte[] scratch = new byte[4];
+
+            UInt32[] outData = new UInt32[itemCount];
+
+            for (int i = 0; i < itemCount; ++i)
+            {
+                data.Read(scratch, 0, 4);
+                outData[i] = BitConverter.ToUInt32(scratch, 0);
+            }
+            return outData;
+        }
+
+        UInt32[] ReadDataShifty(Stream data, int itemCount)
+        {
+            byte[] scratch = new byte[4];
+
+            UInt32[] outData = new UInt32[itemCount];
+
+            for (int i = 0; i < itemCount; ++i)
+            {
+                outData[i] = data.ShiftyReadUInt32BE(scratch);
+            }
+            return outData;
+        }
+
         UInt32[] ReadDataBitConverter(Stream data, int itemCount)
         {
             byte[] scratch = new byte[4];
@@ -178,6 +232,7 @@ namespace NoFrillSMF.Benchmark
             return outData;
         }
 
+
         UInt32[] ReadDataUnsafeFrom(MemoryStream data, int itemCount)
         {
             UInt32[] outData = new UInt32[itemCount];
@@ -208,6 +263,63 @@ namespace NoFrillSMF.Benchmark
             return outData;
         }
 
+        UInt32[] ReadDataUnsafeSwap(MemoryStream data, int itemCount)
+        {
+            UInt32[] outData = new UInt32[itemCount];
+
+            byte[] bytes = data.GetBuffer();
+
+            unsafe
+            {
+                fixed (byte* start = bytes)
+                {
+                    UInt32* current = (UInt32*)start;
+                    for (int i = 0; i < itemCount; ++i)
+                    {
+
+                        outData[i] = BinaryPrimitives.ReverseEndianness(*current);
+
+                        current++;
+                    }
+                }
+            }
+            return outData;
+        }
+
+        UInt32[] ReadDataUnsafeSwapStandalone(MemoryStream data, int itemCount)
+        {
+            UInt32[] outData = new UInt32[itemCount];
+
+            byte[] bytes = data.GetBuffer();
+
+            unsafe
+            {
+                fixed (byte* start = bytes)
+                {
+                    UInt32* current = (UInt32*)start;
+                    for (int i = 0; i < itemCount; ++i)
+                    {
+
+                        outData[i] = BinaryUtilities.SwapUInt32(*current);
+
+                        current++;
+                    }
+                }
+            }
+            return outData;
+        }
+
+        // UInt32[] ReadDataUnsafeSwapStandaloneFunctioned(MemoryStream data, int itemCount)
+        // {
+        //     UInt32[] outData = new UInt32[itemCount];
+
+        //     for (int i = 0; i < itemCount; ++i)
+        //     {
+        //         data.ReadUInt32Unsafe();
+        //     }
+        //     return outData;
+        // }
+
         [Benchmark]
         public void BinaryReaderBitSwapPerformanceTest()
         {
@@ -237,6 +349,20 @@ namespace NoFrillSMF.Benchmark
         }
 
         [Benchmark]
+        public void BitConverterNoSwapPerformanceTest()
+        {
+            ms.Position = 0;
+            UInt32[] values1 = ReadDataBitConverter_noswap(ms, itemCount);
+        }
+
+        [Benchmark]
+        public void ShiftyPerformanceTest()
+        {
+            ms.Position = 0;
+            UInt32[] values1 = ReadDataShifty(ms, itemCount);
+        }
+
+        [Benchmark]
         public void BinaryPrimitivesPerformanceTest()
         {
             ReadOnlySpan<byte> sp = ms.GetBuffer().AsSpan(0, (int)ms.Length);
@@ -247,6 +373,25 @@ namespace NoFrillSMF.Benchmark
         public void BinaryPrimitivesMSPerformanceTest()
         {
             UInt32[] values2 = ReadDataBinaryPrimitivesFromMS(ms, itemCount);
+        }
+
+        [Benchmark]
+        public void BinaryUnsafeSwapStandalonePerformanceTest()
+        {
+            UInt32[] values2 = ReadDataUnsafeSwapStandalone(ms, itemCount);
+        }
+
+        // [Benchmark]
+        // public void BinaryUnsafeSwapStandaloneFunctionedPerformanceTest()
+        // {
+        //     UInt32[] values2 = ReadDataUnsafeSwapStandaloneFunctioned(ms, itemCount);
+        //     //Console.Write(values2.SequenceEqual(test.values));
+        // }
+
+        [Benchmark]
+        public void BinaryUnsafeSwapPerformanceTest()
+        {
+            UInt32[] values2 = ReadDataUnsafeSwap(ms, itemCount);
         }
 
         [Benchmark]
