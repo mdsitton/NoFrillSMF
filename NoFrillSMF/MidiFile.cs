@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using NoFrill.Common;
 
 using NoFrillSMF.Chunks;
 using System.Text;
@@ -26,7 +27,7 @@ namespace NoFrillSMF
             while (data.Position < fileSize)
             {
                 string str = data.ReadString(dataBuffer, size: 4);
-                UInt32 chunkLength = data.ReadUInt32(dataBuffer, flipEndianness: true);
+                UInt32 chunkLength = data.ReadUInt32BE();
 
                 if (chunkLength > fileSize)
                 {
@@ -59,10 +60,7 @@ namespace NoFrillSMF
                 // TODO - Split these out into Utilities
                 data.Write(Encoding.ASCII.GetBytes(chunk.TypeStr), 0, 4);
 
-                byte[] lengthData = BitConverter.GetBytes(chunk.Length);
-                Array.Reverse(lengthData, 0, 4);
-                data.Write(lengthData, 0, 4);
-
+                data.WriteUInt32BE(chunk.Length);
                 chunk.Write(data);
             }
         }

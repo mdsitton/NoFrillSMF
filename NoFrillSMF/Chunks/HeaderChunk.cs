@@ -1,6 +1,7 @@
 using System.Text;
 using System;
 using System.IO;
+using NoFrill.Common;
 
 namespace NoFrillSMF.Chunks
 {
@@ -32,10 +33,9 @@ namespace NoFrillSMF.Chunks
         public void Parse()
         {
             int position = 0;
-            byte[] scratchBuffer = new byte[4];
-            Format = chunkData.ReadUInt16(ref position, scratchBuffer, flipEndianness: true);
-            TrackCount = chunkData.ReadUInt16(ref position, scratchBuffer, flipEndianness: true);
-            rawDivision = chunkData.ReadUInt16(ref position, scratchBuffer, flipEndianness: true);
+            Format = chunkData.ReadUInt16BE(ref position);
+            TrackCount = chunkData.ReadUInt16BE(ref position);
+            rawDivision = chunkData.ReadUInt16BE(ref position);
         }
 
         public byte[] Compose()
