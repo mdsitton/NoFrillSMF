@@ -40,7 +40,7 @@ namespace NoFrill.Common
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt64 SwapEndianess(UInt64 val)
         {
-            return ((UInt64)SwapEndianess((UInt32)val) << 32) | ((UInt64)SwapEndianess((UInt32)val >> 32));
+            return (((UInt64)SwapEndianess((UInt32)val)) << 32) | (UInt64)SwapEndianess((UInt32)(val >> 32));
         }
     }
 }
