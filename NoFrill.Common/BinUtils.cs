@@ -33,8 +33,8 @@ namespace NoFrill.Common
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt32 SwapEndianess(UInt32 val)
         {
-            UInt32 tmp = (val << 16) | ((val >> 16) & 0x00ffff);
-            return ((tmp >> 8) & 0x00ff00ff) | ((tmp & 0x00ff00ff) << 8);
+            val = ((val << 8) & 0xFF00FF00) | ((val >> 8) & 0xFF00FF);
+            return (val << 16) | (val >> 16);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
