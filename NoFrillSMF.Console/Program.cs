@@ -7,8 +7,13 @@ namespace NoFrillSMF.Console
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
+            if (args.Length < 2 || args.Length > 2)
+            {
+                System.Console.WriteLine("ERROR: Invalid arguments");
+                return 1;
+            }
             MidiFile reader = new MidiFile();
 
             using (Stream file = File.OpenRead(args[0]))
@@ -19,6 +24,7 @@ namespace NoFrillSMF.Console
             {
                 reader.WriteData(file);
             }
+            return 0;
         }
     }
 }

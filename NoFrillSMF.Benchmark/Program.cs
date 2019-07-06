@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using BenchmarkDotNet.Running;
 
 namespace NoFrillSMF.Benchmark
@@ -7,7 +8,14 @@ namespace NoFrillSMF.Benchmark
     {
         static void Main(string[] args)
         {
-            BenchmarkRunner.Run<BinaryBench>();
+            if (args.Contains("--vlvBench"))
+                BenchmarkRunner.Run<VlvBench>();
+            else if (args.Contains("--binaryBench"))
+                BenchmarkRunner.Run<BinaryBench>();
+            else
+            {
+                Console.WriteLine("Error: Please select which benchmark:\n\t--vlvBench\n\t--binaryBench");
+            }
         }
     }
 }
