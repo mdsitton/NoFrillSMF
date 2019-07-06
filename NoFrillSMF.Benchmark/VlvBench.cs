@@ -73,6 +73,7 @@ namespace NoFrillSMF.Benchmark
         }
     }
 
+    [MonoJob, CoreJob]
     public class VlvBench
     {
 

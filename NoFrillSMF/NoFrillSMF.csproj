@@ -1,15 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netcoreapp2.2</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>7.3</LangVersion>
     <Authors>Matthew Sitton</Authors>
     <Version>0.0.1-prealpha</Version>
   </PropertyGroup>
-
-  <ItemGroup Condition="$(TargetFramework.Equals('netstandard2.0'))">
-    <PackageReference Include="System.Memory" Version="4.5.3" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\NoFrill.Common\NoFrill.Common.csproj" />
