@@ -33,6 +33,20 @@ namespace NoFrill.Common
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int32 ReadInt24LE(this byte[] buff, int offset)
+        {
+            Int32 val = (Int32)buff.ReadUInt24LE(offset);
+            return val - (val >> 23 << 24);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int32 ReadInt24BE(this byte[] buff, int offset)
+        {
+            Int32 val = (Int32)buff.ReadUInt24BE(offset);
+            return val - (val >> 23 << 24);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Int64 ReadInt64LE(this byte[] buff, int offset)
         {
             return (Int64)buff.ReadUInt64LE(offset);
