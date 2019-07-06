@@ -23,6 +23,123 @@ namespace NoFrill.Common
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteInt24BE(this Stream data, Int32 value)
+        {
+            Debug.Assert(data.CanWrite);
+
+            byte[] scratch = EnsureScratch();
+
+            scratch.WriteInt24BE(0, value);
+            data.Write(scratch, 0, 4);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteInt24LE(this Stream data, Int32 value)
+        {
+            Debug.Assert(data.CanWrite);
+
+            byte[] scratch = EnsureScratch();
+
+            scratch.WriteInt24LE(0, value);
+            data.Write(scratch, 0, 4);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteInt64BE(this Stream data, Int64 value)
+        {
+            Debug.Assert(data.CanWrite);
+
+            byte[] scratch = EnsureScratch();
+
+            scratch.WriteInt64BE(0, value);
+            data.Write(scratch, 0, 8);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteInt64LE(this Stream data, Int64 value)
+        {
+            Debug.Assert(data.CanWrite);
+
+            byte[] scratch = EnsureScratch();
+
+            scratch.WriteInt64LE(0, value);
+            data.Write(scratch, 0, 8);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteInt32BE(this Stream data, Int32 value)
+        {
+            Debug.Assert(data.CanWrite);
+
+            byte[] scratch = EnsureScratch();
+
+            scratch.WriteInt32BE(0, value);
+            data.Write(scratch, 0, 4);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteInt32LE(this Stream data, Int32 value)
+        {
+            Debug.Assert(data.CanWrite);
+
+            byte[] scratch = EnsureScratch();
+
+            scratch.WriteInt32LE(0, value);
+            data.Write(scratch, 0, 4);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteInt16BE(this Stream data, Int16 value)
+        {
+            Debug.Assert(data.CanWrite);
+
+            byte[] scratch = EnsureScratch();
+
+            scratch.WriteInt16BE(0, value);
+            data.Write(scratch, 0, 2);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteInt16LE(this Stream data, Int16 value)
+        {
+            Debug.Assert(data.CanWrite);
+
+            byte[] scratch = EnsureScratch();
+
+            scratch.WriteInt16LE(0, value);
+            data.Write(scratch, 0, 2);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteSByte(this Stream data, byte value)
+        {
+            Debug.Assert(data.CanWrite);
+            data.WriteSByte(value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteUInt24BE(this Stream data, UInt32 value)
+        {
+            Debug.Assert(data.CanWrite);
+
+            byte[] scratch = EnsureScratch();
+
+            scratch.WriteUInt24BE(0, value);
+            data.Write(scratch, 0, 4);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteUInt24LE(this Stream data, UInt32 value)
+        {
+            Debug.Assert(data.CanWrite);
+
+            byte[] scratch = EnsureScratch();
+
+            scratch.WriteUInt24LE(0, value);
+            data.Write(scratch, 0, 4);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteUInt64BE(this Stream data, UInt64 value)
         {
             Debug.Assert(data.CanWrite);
@@ -89,7 +206,7 @@ namespace NoFrill.Common
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Writebyte(this Stream data, byte value)
+        public static void WriteByte(this Stream data, byte value)
         {
             Debug.Assert(data.CanWrite);
             data.WriteByte(value);
