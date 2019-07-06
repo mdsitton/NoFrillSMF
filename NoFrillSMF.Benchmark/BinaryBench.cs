@@ -384,7 +384,35 @@ namespace NoFrillSMF.Benchmark
             return outData;
         }
 
-        UInt32[] ReadDataSafeRefSwapStandaloneFunctioned(MemoryStream data, int itemCount)
+        UInt32[] BitConverterStandaloneSwap(MemoryStream data, int itemCount)
+        {
+            UInt32[] outData = new UInt32[itemCount];
+
+            var buff = data.GetBuffer();
+            int start = (int)data.Position;
+            for (int i = 0; i < itemCount; ++i)
+            {
+                outData[i] = BinaryUtilities.SwapUInt32(BitConverter.ToUInt32(buff, start + (i * 4)));
+            }
+            data.Position += (itemCount * 4);
+            return outData;
+        }
+
+        UInt32[] BitConverterStandaloneLE(MemoryStream data, int itemCount)
+        {
+            UInt32[] outData = new UInt32[itemCount];
+
+            var buff = data.GetBuffer();
+            int start = (int)data.Position;
+            for (int i = 0; i < itemCount; ++i)
+            {
+                outData[i] = BitConverter.ToUInt32(buff, start + (i * 4));
+            }
+            data.Position += (itemCount * 4);
+            return outData;
+        }
+
+        UInt32[] ReadDataBinUtilsRef(MemoryStream data, int itemCount)
         {
             UInt32[] outData = new UInt32[itemCount];
 
@@ -395,6 +423,33 @@ namespace NoFrillSMF.Benchmark
                 outData[i] = buff.ReadUInt32BE(ref start);
             }
             data.Position += (itemCount * 4);
+            return outData;
+        }
+
+        UInt32[] ReadDataBinUtilsRefLE(MemoryStream data, int itemCount)
+        {
+            UInt32[] outData = new UInt32[itemCount];
+
+            var buff = data.GetBuffer();
+            int start = (int)data.Position;
+            for (int i = 0; i < itemCount; ++i)
+            {
+                outData[i] = buff.ReadUInt32LE(ref start);
+            }
+            data.Position += (itemCount * 4);
+            return outData;
+        }
+
+        public UInt32[] BinStreamRead(Stream data, int count)
+        {
+
+            UInt32[] outData = new UInt32[itemCount];
+
+            for (int i = 0; i < itemCount; ++i)
+            {
+                outData[i] = data.ReadUInt32BE();
+            }
+
             return outData;
         }
 
@@ -427,7 +482,7 @@ namespace NoFrillSMF.Benchmark
         }
 
         [Benchmark]
-        public void BitConverterNoSwapPerformanceTest()
+        public void BitConverterLEPerformanceTest()
         {
             ms.Position = 0;
             UInt32[] values1 = ReadDataBitConverter_noswap(ms, itemCount);
@@ -459,19 +514,6 @@ namespace NoFrillSMF.Benchmark
             UInt32[] values2 = ReadDataUnsafeSwapStandalone(ms, itemCount);
         }
 
-        public UInt32[] BinStreamRead(Stream data, int count)
-        {
-
-            UInt32[] outData = new UInt32[itemCount];
-
-            for (int i = 0; i < itemCount; ++i)
-            {
-                outData[i] = data.ReadUInt32BE();
-            }
-
-            return outData;
-        }
-
         [Benchmark]
         public void BinStreamPerformanceTest()
         {
@@ -500,17 +542,42 @@ namespace NoFrillSMF.Benchmark
         public void BinarySafeLESwapStandaloneFunctionedPerformanceTest()
         {
             ms.Position = 0;
-            UInt32[] values2 = ReadDataSafeSwapStandaloneFunctioned(ms, itemCount);
+            UInt32[] values2 = ReadDataSafeLESwapStandaloneFunctioned(ms, itemCount);
             //Console.Write(values2.SequenceEqual(test.values));
         }
 
         [Benchmark]
-        public void BinarySafeRefSwapStandaloneFunctionedPerformanceTest()
+        public void BinaryBinUtilsRefPerformanceTest()
         {
             ms.Position = 0;
-            UInt32[] values2 = ReadDataSafeRefSwapStandaloneFunctioned(ms, itemCount);
+            UInt32[] values2 = ReadDataBinUtilsRef(ms, itemCount);
             //Console.Write(values2.SequenceEqual(test.values));
         }
+
+        [Benchmark]
+        public void BinaryBinUtilsRefLEPerformanceTest()
+        {
+            ms.Position = 0;
+            UInt32[] values2 = ReadDataBinUtilsRefLE(ms, itemCount);
+            //Console.Write(values2.SequenceEqual(test.values));
+        }
+
+        [Benchmark]
+        public void BitConverterStandaloneSwapPerformanceTest()
+        {
+            ms.Position = 0;
+            UInt32[] values2 = BitConverterStandaloneSwap(ms, itemCount);
+            //Console.Write(values2.SequenceEqual(test.values));
+        }
+
+        [Benchmark]
+        public void BitConverterStandaloneLEPerformanceTest()
+        {
+            ms.Position = 0;
+            UInt32[] values2 = BitConverterStandaloneLE(ms, itemCount);
+            //Console.Write(values2.SequenceEqual(test.values));
+        }
+
         public void BinaryUnsafeSwapPerformanceTest()
         {
             UInt32[] values2 = ReadDataUnsafeSwap(ms, itemCount);
