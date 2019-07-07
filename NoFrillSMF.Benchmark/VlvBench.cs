@@ -4,6 +4,7 @@ using System.Diagnostics;
 
 using NoFrill.Common;
 using BenchmarkDotNet.Attributes;
+using System.Text;
 
 namespace NoFrillSMF.Benchmark
 {
@@ -13,30 +14,38 @@ namespace NoFrillSMF.Benchmark
         {
             Debug.Assert(value <= 0xfffffff);
 
-            UInt32 store = 0;
             uint byteCount = 0;
+            UInt32 store = value & 0x7F;
 
-            unsafe
+            while ((value >>= 7) != 0)
             {
-                byte* storePtr = (byte*)Unsafe.AsPointer(ref store);
-                do
-                {
-                    store |= (value & 0x7F) | 0x80;
-                    store <<= 8;
-                    value >>= 7;
-                    byteCount++;
-                }
-                while (value != 0);
-
-                storePtr[byteCount - 1] ^= 0x80;
-
-
-                BinUtils.SwapEndianess(store);
-
-                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(storePtr), ref data[offset], byteCount);
-                offset += (int)byteCount;
+                store <<= 8;
+                store |= (value & 0x7F) | 0x80;
+                byteCount++;
             }
 
+            BinUtils.SwapEndianess(store);
+            Unsafe.CopyBlockUnaligned(ref Unsafe.As<UInt32, byte>(ref store), ref data[offset], byteCount);
+            offset += (int)byteCount;
+        }
+
+        public static void WriteVlvStandard(this byte[] data, UInt32 value, ref int offset)
+        {
+            Debug.Assert(value <= 0xfffffff);
+
+            UInt32 store = value & 0x7F;
+
+            while ((value >>= 7) != 0)
+            {
+                store <<= 8;
+                store |= (value & 0x7F) | 0x80;
+            }
+
+            do
+            {
+                data[offset++] = (byte)(store);
+            }
+            while (((store >>= 8) & 0x80) != 0);
         }
 
         public static UInt32 ReadVlvStandard(this byte[] data, ref int offset)
@@ -103,7 +112,7 @@ namespace NoFrillSMF.Benchmark
             int pos = 0;
             foreach (var val in srcData)
             {
-                data.WriteVlv(val, ref pos);
+                data.WriteVlvStandard(val, ref pos);
             }
         }
 
@@ -128,6 +137,26 @@ namespace NoFrillSMF.Benchmark
             for (int i = 0; i < itemCount; ++i)
             {
                 dataRead[i] = data.ReadVlvAlternate(ref pos);
+            }
+        }
+
+        [Benchmark]
+        public void WriteVlvPerformance()
+        {
+            int pos = 0;
+            foreach (var val in srcData)
+            {
+                data.WriteVlv(val, ref pos);
+            }
+        }
+
+        [Benchmark]
+        public void WriteVlvStdPerformance()
+        {
+            int pos = 0;
+            foreach (var val in srcData)
+            {
+                data.WriteVlvStandard(val, ref pos);
             }
         }
     }
