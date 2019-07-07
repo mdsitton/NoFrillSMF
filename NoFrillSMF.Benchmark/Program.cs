@@ -10,11 +10,13 @@ namespace NoFrillSMF.Benchmark
         {
             if (args.Contains("--vlvBench"))
                 BenchmarkRunner.Run<VlvBench>();
+            else if (args.Contains("--copyBench"))
+                BenchmarkRunner.Run<CopyBench>();
             else if (args.Contains("--binaryBench"))
                 BenchmarkRunner.Run<BinaryBench>();
             else
             {
-                Console.WriteLine("Error: Please select which benchmark:\n\t--vlvBench\n\t--binaryBench");
+                Console.WriteLine("Error: Please select which benchmark:\n\t--vlvBench\n\t--copyBench\n\t--binaryBench");
             }
         }
     }
