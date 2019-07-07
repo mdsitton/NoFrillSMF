@@ -16,18 +16,18 @@ namespace NoFrillSMF
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt32 ReadVlvStandard(this byte[] data, ref int offset)
+        public static UInt32 ReadVlv(this byte[] data, ref int offset)
         {
-            UInt32 value = 0;
+            byte c = data[offset++];
+            UInt32 value = c & 0x7FU;
 
-            byte c;
 
-            do
+            while ((c & 0x80) != 0)
             {
                 c = data[offset++];
-                value = (value << 7) | (UInt32)(c & 0x7f);
+                value <<= 7;
+                value |= c & 0x7FU;
             }
-            while ((c & 0x80) != 0);
 
             return value;
         }
