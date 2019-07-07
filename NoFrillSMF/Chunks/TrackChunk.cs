@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using NoFrill.Common;
 
 namespace NoFrillSMF.Chunks
 {
@@ -25,7 +26,49 @@ namespace NoFrillSMF.Chunks
 
         public void Parse()
         {
-            throw new NotImplementedException();
+            int pos = 0;
+            UInt64 tickTime = 0;
+            UInt32 deltaTicks = 0;
+            byte runningStatus = 0;
+
+            while (pos < Length)
+            {
+                deltaTicks = chunkData.ReadVlv(ref pos);
+                tickTime += deltaTicks;
+                var status = chunkData.ReadByte(pos);
+
+                if (status == (byte)Events.EventStatus.MetaEvent)
+                {
+                    pos++;
+                    var metaType = chunkData.ReadByte(ref pos);
+                    var len = chunkData.ReadVlv(ref pos);
+                    pos += (int)len;
+                }
+                else if (status == (byte)Events.EventStatus.SysexEventStart || status == (byte)Events.EventStatus.SysexEventEscape)
+                {
+                    pos++;
+                    var len = chunkData.ReadVlv(ref pos);
+                    pos += (int)len;
+                }
+                else
+                {
+                    // Check if we should use the running status.
+                    if ((status & 0xF0) >= 0x80)
+                    {
+                        pos++;
+                        runningStatus = status;
+                    }
+                    else
+                    {
+                        status = runningStatus;
+                    }
+                    var message = status & 0xF0;
+                    var channel = status & 0xF;
+                    var note = chunkData.ReadByte(ref pos);
+                    var vel = chunkData.ReadByte(ref pos);
+                    //Console.WriteLine($"{note} {vel}");
+                }
+            }
         }
 
         public byte[] Compose()

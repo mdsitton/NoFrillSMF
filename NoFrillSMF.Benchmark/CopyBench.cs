@@ -6,6 +6,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace NoFrillSMF.Benchmark
 {
+    [MonoJob, CoreJob]
     public class CopyBench
     {
         byte[] bytes = Encoding.UTF8.GetBytes("MyProperty1");
