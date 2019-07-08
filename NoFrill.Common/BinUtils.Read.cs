@@ -139,5 +139,13 @@ namespace NoFrill.Common
             Debug.Assert(buff.Length >= Unsafe.SizeOf<byte>());
             return buff[offset];
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ReadBytes(this byte[] data, int offset, byte[] output, UInt32 count)
+        {
+            Unsafe.CopyBlockUnaligned(ref output[0], ref data[offset], count);
+            return (int)count;
+        }
+
     }
 }

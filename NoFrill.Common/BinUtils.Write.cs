@@ -139,5 +139,12 @@ namespace NoFrill.Common
             Unsafe.WriteUnaligned<byte>(ref buff[offset], value);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int WriteBytes(this byte[] data, int offset, byte[] input, UInt32 count)
+        {
+            Unsafe.CopyBlockUnaligned(ref data[offset], ref input[0], count);
+            return (int)count;
+        }
+
     }
 }

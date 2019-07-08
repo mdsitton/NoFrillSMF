@@ -136,5 +136,11 @@ namespace NoFrill.Common
             offset += 1;
             return val;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ReadBytes(this byte[] data, ref int offset, byte[] output, UInt32 count)
+        {
+            offset += ReadBytes(data, offset, output, count);
+        }
     }
 }

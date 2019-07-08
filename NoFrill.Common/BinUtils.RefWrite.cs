@@ -133,5 +133,11 @@ namespace NoFrill.Common
             offset += 1;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteBytes(this byte[] data, ref int offset, byte[] input, UInt32 count)
+        {
+            offset += WriteBytes(data, offset, input, count);
+        }
+
     }
 }
