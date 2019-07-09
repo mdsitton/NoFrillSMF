@@ -28,6 +28,39 @@ namespace NoFrillSMF.Events
 
         public IEvent Previous { get; set; }
 
+
+        void ReadMidiEvent(byte[] data, ref int offset, MidiChannelMessage status)
+        {
+            switch (status)
+            {
+                case MidiChannelMessage.NoteOn:
+                    data.ReadByte(ref offset);
+                    data.ReadByte(ref offset);
+                    break;
+                case MidiChannelMessage.NoteOff:
+                    data.ReadByte(ref offset);
+                    data.ReadByte(ref offset);
+                    break;
+                case MidiChannelMessage.ControlChange:
+                    data.ReadByte(ref offset);
+                    data.ReadByte(ref offset);
+                    break;
+                case MidiChannelMessage.ProgramChange:
+                    data.ReadByte(ref offset);
+                    break;
+                case MidiChannelMessage.ChannelPressure:
+                    data.ReadByte(ref offset);
+                    break;
+                case MidiChannelMessage.PitchBend:
+                    data.ReadByte(ref offset);
+                    data.ReadByte(ref offset);
+                    break;
+                default:
+                    return;
+
+            }
+        }
+
         public void Parse(byte[] data, ref int offset)
         {
             // Check if we should use the running status.
@@ -37,9 +70,7 @@ namespace NoFrillSMF.Events
             }
             else
             {
-                MidiEvent prev = Previous as MidiEvent;
-
-                if (prev == null)
+                if (!(Previous is MidiEvent prev))
                 {
                     Console.WriteLine("Warning: Incorrect running status found, assuming last midi event status");
                     prev = EventUtils.FindLast<MidiEvent>(this);
@@ -47,10 +78,10 @@ namespace NoFrillSMF.Events
 
                 Status = prev.Status;
             }
-            var message = Status & 0xF0;
-            var channel = Status & 0xF;
-            var note = data.ReadByte(ref offset);
-            var vel = data.ReadByte(ref offset);
+
+            MidiChannelMessage message = (MidiChannelMessage)(Status & 0xF0);
+            byte channel = (byte)(Status & 0xF);
+            ReadMidiEvent(data, ref offset, message);
             //Console.WriteLine($"{note} {vel}");
         }
 

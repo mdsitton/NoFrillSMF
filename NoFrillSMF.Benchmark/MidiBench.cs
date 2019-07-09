@@ -42,7 +42,7 @@ namespace NoFrillSMF.Benchmark
         {
             //ms.Position = 0;
 
-            NoFrillSMF.MidiFile reader = new NoFrillSMF.MidiFile();
+            MidiFile reader = new MidiFile();
 
             using (FileStream fs = File.OpenRead(fileName))
             {
