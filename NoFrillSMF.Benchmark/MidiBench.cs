@@ -17,16 +17,18 @@ namespace NoFrillSMF.Benchmark
         [GlobalSetup]
         public void Setup()
         {
-            src = File.ReadAllBytes(fileName);
-            ms = new MemoryStream(src);
+            // = File.ReadAllBytes(fileName);
+            //ms = new MemoryStream(src);
         }
 
-        // [Benchmark]
-        // public void NAudioMidi()
-        // {
-        //     ms.Position = 0;
-        //     var mf = new NAudio.Midi.MidiFile(ms, false);
-        // }
+        [Benchmark]
+        public void NAudioMidi()
+        {
+            using (FileStream fs = File.OpenRead(fileName))
+            {
+                var mf = new NAudio.Midi.MidiFile(fs, false);
+            }
+        }
 
         // [Benchmark]
         // public void DryWetMidi()
@@ -38,11 +40,14 @@ namespace NoFrillSMF.Benchmark
         [Benchmark]
         public void NoFrillSMF()
         {
-            ms.Position = 0;
+            //ms.Position = 0;
 
             NoFrillSMF.MidiFile reader = new NoFrillSMF.MidiFile();
 
-            reader.ReadData(src);
+            using (FileStream fs = File.OpenRead(fileName))
+            {
+                reader.ReadData(fs);
+            }
         }
     }
 }

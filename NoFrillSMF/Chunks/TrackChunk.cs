@@ -29,7 +29,8 @@ namespace NoFrillSMF.Chunks
             int pos = 0;
             UInt64 tickTime = 0;
             UInt32 deltaTicks = 0;
-            byte runningStatus = 0;
+            Events.IEvent eventElement = null;
+            Events.IEvent prevEvent = null;
 
             while (pos < Length)
             {
@@ -37,37 +38,11 @@ namespace NoFrillSMF.Chunks
                 tickTime += deltaTicks;
                 var status = chunkData.ReadByte(pos);
 
-                if (status == (byte)Events.EventStatus.MetaEvent)
-                {
-                    pos++;
-                    var metaType = chunkData.ReadByte(ref pos);
-                    var len = chunkData.ReadVlv(ref pos);
-                    pos += (int)len;
-                }
-                else if (status == (byte)Events.EventStatus.SysexEventStart || status == (byte)Events.EventStatus.SysexEventEscape)
-                {
-                    pos++;
-                    var len = chunkData.ReadVlv(ref pos);
-                    pos += (int)len;
-                }
-                else
-                {
-                    // Check if we should use the running status.
-                    if ((status & 0xF0) >= 0x80)
-                    {
-                        pos++;
-                        runningStatus = status;
-                    }
-                    else
-                    {
-                        status = runningStatus;
-                    }
-                    var message = status & 0xF0;
-                    var channel = status & 0xF;
-                    var note = chunkData.ReadByte(ref pos);
-                    var vel = chunkData.ReadByte(ref pos);
-                    //Console.WriteLine($"{note} {vel}");
-                }
+                prevEvent = eventElement;
+
+                eventElement = Events.EventUtils.EventFactory(status);
+                eventElement.Previous = prevEvent;
+                eventElement.Parse(chunkData, ref pos);
             }
         }
 

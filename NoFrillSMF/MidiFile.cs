@@ -41,7 +41,7 @@ namespace NoFrillSMF
                 chunk.Read(data, chunkLength);
                 chunks.Add(chunk);
                 chunkCount++;
-                Console.WriteLine(chunkCount);
+                //Console.WriteLine(chunkCount);
             }
         }
 

@@ -146,6 +146,5 @@ namespace NoFrill.Common
             Unsafe.CopyBlockUnaligned(ref output[0], ref data[offset], count);
             return (int)count;
         }
-
     }
 }

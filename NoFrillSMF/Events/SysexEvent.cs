@@ -1,33 +1,26 @@
-using System.IO;
-using NoFrill.Common;
-
 namespace NoFrillSMF.Events
 {
-    public class MetaEvent : IEvent
+    public class SysexEvent : IEvent
     {
-        public byte Status => (byte)EventStatus.MetaEvent;
+        public byte Status { get; set; }
         public byte MetaType { get; private set; }
 
         public int Length { get; private set; }
-        public int TotalSize { get; private set; }
+        public int TotalSize { get; private set; } // TODO - Make function to figure out length of varlen
 
         public uint DeltaTick { get; private set; }
 
         public IEvent Previous { get; set; }
 
-        public void Parse(byte[] data, ref int pos)
+        public void Parse(byte[] data, ref int offset)
         {
-            var metaType = data.ReadByte(ref pos);
-            Length = (int)data.ReadVlv(ref pos);
-            pos += Length;
+            Length = (int)data.ReadVlv(ref offset);
+            offset += Length;
         }
 
         public void Compose(byte[] data, ref int offset)
         {
             throw new System.NotImplementedException();
         }
-
-
     }
-
 }
