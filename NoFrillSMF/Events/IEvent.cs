@@ -10,6 +10,17 @@ namespace NoFrillSMF.Events
         SysexEventEscape = 0xF7,
     };
 
+    enum MidiChannelMessage : byte
+    {
+        NoteOff = 0x80,
+        NoteOn = 0x90,
+        KeyPressure = 0xA0,
+        ControlChange = 0xB0,
+        ProgramChange = 0xC0,
+        ChannelPressure = 0xD0,
+        PitchBend = 0xE0,
+    };
+
     public interface IEvent
     {
         byte Status { get; }

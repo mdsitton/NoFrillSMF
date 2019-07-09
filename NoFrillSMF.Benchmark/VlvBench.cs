@@ -8,6 +8,8 @@ using BenchmarkDotNet.Attributes;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.IO;
+using System.Runtime;
+using NoFrillSMF;
 
 namespace NoFrillSMF.Benchmark
 {
@@ -121,57 +123,77 @@ namespace NoFrillSMF.Benchmark
             throw new FormatException("Invalid Var Int");
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt32 ReadVarIntNAudio(this byte[] data, ref int offset)
         {
-            UInt32 value = 0;
-            byte b;
-            for (UInt32 n = 0; n < 4; n++)
+            byte b = data[offset++];
+            UInt32 value = b & 0x7FU;
+
+            while (true)
             {
+
+                if ((b & 0x80) == 0)
+                    return value;
+
                 b = data[offset++];
                 value <<= 7;
-                value += (UInt32)(b & 0x7F);
-                if ((b & 0x80) == 0)
-                {
-                    return value;
-                }
+                value |= b & 0x7FU;
+
             }
-            throw new FormatException("Invalid Var Int");
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining), TargetedPatchingOptOut("Inline across assemplies")]
+        public static UInt32 ReadVlvStandard(this byte[] data, ref int offset)
+        {
+            byte c = data[offset++];
+            UInt32 value = c & 0x7FU;
+
+
+            while ((c & 0x80) != 0)
+            {
+                c = data[offset++];
+                value <<= 7;
+                value |= c & 0x7FU;
+            }
+
+            return value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UInt32 ReadVlvStandard(this byte[] data, ref int offset)
-        {
-            UInt32 value = 0;
-
-            byte c;
-
-            do
-            {
-                c = data[offset++];
-                value = (value << 7) | (UInt32)(c & 0x7f);
-            }
-            while ((c & 0x80) != 0);
-
-            return value;
-        }
-
         public static UInt32 ReadVlvAlternate(this byte[] data, ref int offset)
         {
-            UInt32 value = 0;
-
-            for (int i = 0; i < 4; ++i)
+            unchecked
             {
+
                 byte c = data[offset++];
+                UInt32 value = c & 0x7FU;
 
-                value <<= 7;
-                value |= (UInt32)(c & 0x7f);
 
-                if ((c & 0x80) == 0)
-                    break;
+                while ((c & 0x80) != 0)
+                {
+                    c = data[offset++];
+                    value <<= 7;
+                    value |= c & 0x7FU;
+                }
+
+                return value;
             }
-            return value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte ReadUInt8(this byte[] data, ref int offset)
+        {
+            return data[offset];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe static byte ReadUInt8Unsafe(this byte[] data, ref int offset)
+        {
+            byte* dataPtr = (byte*)Unsafe.AsPointer(ref data);
+            return dataPtr[offset++];
         }
     }
+
 
     [MonoJob, CoreJob]
     public class VlvBench
@@ -210,6 +232,37 @@ namespace NoFrillSMF.Benchmark
             br = new BinaryReader(ms);
         }
 
+        [Benchmark]
+        public void ReadInt8Performance()
+        {
+            byte[] dataRead = new byte[itemCount];
+
+            int pos = 0;
+            for (int i = 0; i < itemCount; ++i)
+            {
+                dataRead[i] = data.ReadUInt8(ref pos);
+            }
+            // if (!dataRead.SequenceEqual(srcData))
+            // {
+            //     throw new Exception("Bad");
+            // }
+        }
+
+        [Benchmark]
+        public void ReadInt8UnsafePerformance()
+        {
+            byte[] dataRead = new byte[itemCount];
+
+            int pos = 0;
+            for (int i = 0; i < itemCount; ++i)
+            {
+                dataRead[i] = data.ReadUInt8Unsafe(ref pos);
+            }
+            // if (!dataRead.SequenceEqual(srcData))
+            // {
+            //     throw new Exception("Bad");
+            // }
+        }
 
         [Benchmark]
         public void ReadVlvPerformance()
@@ -221,6 +274,26 @@ namespace NoFrillSMF.Benchmark
             {
                 dataRead[i] = data.ReadVlvStandard(ref pos);
             }
+            // if (!dataRead.SequenceEqual(srcData))
+            // {
+            //     throw new Exception("Bad");
+            // }
+        }
+
+        [Benchmark]
+        public void ReadVlvPerformanceNFSMF()
+        {
+            UInt32[] dataRead = new UInt32[itemCount];
+
+            int pos = 0;
+            for (int i = 0; i < itemCount; ++i)
+            {
+                dataRead[i] = data.ReadVlv(ref pos);
+            }
+            // if (!dataRead.SequenceEqual(srcData))
+            // {
+            //     throw new Exception("Bad");
+            // }
         }
 
         [Benchmark]

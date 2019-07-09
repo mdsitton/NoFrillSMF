@@ -9,10 +9,15 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.11.5" />
+    <PackageReference Include="NAudio" Version="1.9.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\NoFrill.Common\NoFrill.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NoFrillSMF\NoFrillSMF.csproj" />
   </ItemGroup>
 
 </Project>
