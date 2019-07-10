@@ -3,9 +3,33 @@ using NoFrill.Common;
 
 namespace NoFrillSMF.Events
 {
+
+
     public class MidiEventProcessor : IEventTypeProcessor
     {
-        public void Compose(byte[] data, ref int offset, Chunks.TrackParseState state)
+
+        public static IEvent MidiEventFactory(MidiChannelMessage message)
+        {
+            switch (message)
+            {
+                case MidiChannelMessage.NoteOn:
+                    return new MidiEvents.NoteOnEvent();
+                case MidiChannelMessage.NoteOff:
+                    return new MidiEvents.NoteOffEvent();
+                case MidiChannelMessage.ControlChange:
+                    return new MidiEvents.ControlChangeEvent();
+                case MidiChannelMessage.ProgramChange:
+                    return new MidiEvents.ProgramChangeEvent();
+                case MidiChannelMessage.ChannelPressure:
+                    return new MidiEvents.ChannelPressureEvent();
+                case MidiChannelMessage.PitchBend:
+                    return new MidiEvents.PitchBendEvent();
+                default:
+                    return null;
+            }
+        }
+
+        public void Parse(byte[] data, ref int offset, Chunks.TrackParseState state)
         {
             if (state.eventElement is null)
             {
@@ -28,13 +52,13 @@ namespace NoFrillSMF.Events
                 }
 
                 MidiChannelMessage message = (MidiChannelMessage)(state.status & 0xF0);
-                state.eventElement = EventUtils.MidiEventFactory(message);
+                state.eventElement = MidiEventFactory(message);
             }
         }
 
-        public void Parse(byte[] data, ref int offset, Chunks.TrackParseState state)
+        public void Compose(byte[] data, ref int offset, Chunks.TrackParseState state)
         {
-            throw new System.NotImplementedException();
         }
+
     }
 }
