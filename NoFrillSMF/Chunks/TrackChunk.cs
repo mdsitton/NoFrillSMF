@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using NoFrill.Common;
+using NoFrillSMF.Events;
 
 namespace NoFrillSMF.Chunks
 {
@@ -11,6 +13,8 @@ namespace NoFrillSMF.Chunks
         public uint Length { get; private set; }
 
         protected byte[] chunkData;
+        protected List<IEvent> events;
+        protected TrackParseState state = new TrackParseState();
 
         public void Read(Stream data, uint chunkLength)
         {
@@ -27,22 +31,22 @@ namespace NoFrillSMF.Chunks
         public void Parse()
         {
             int pos = 0;
-            UInt64 tickTime = 0;
-            UInt32 deltaTicks = 0;
-            Events.IEvent eventElement = null;
-            Events.IEvent prevEvent = null;
 
             while (pos < Length)
             {
-                deltaTicks = chunkData.ReadVlv(ref pos);
-                tickTime += deltaTicks;
-                var status = chunkData.ReadByte(pos);
+                state.deltaTicks = chunkData.ReadVlv(ref pos);
+                state.tickTime += state.deltaTicks;
+                state.status = chunkData.ReadByte(pos);
 
-                prevEvent = eventElement;
+                // TODO - Cache these instances
+                Events.IEventTypeProcessor processor = EventUtils.EventProcessorFactory(state.status);
+                processor.Parse(chunkData, ref pos, state);
 
-                eventElement = Events.EventUtils.EventFactory(status);
-                eventElement.Previous = prevEvent;
-                eventElement.Parse(chunkData, ref pos);
+                state.prevEvent = state.eventElement;
+
+                state.eventElement.Previous = state.prevEvent;
+                events.Add(state.eventElement);
+                state.eventElement.Parse(chunkData, ref pos);
             }
         }
 

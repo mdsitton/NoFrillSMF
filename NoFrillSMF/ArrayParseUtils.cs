@@ -35,7 +35,7 @@ namespace NoFrillSMF
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteVlv(this byte[] data, UInt32 value, ref int offset)
+        public static void WriteVlv(this byte[] data, ref int offset, UInt32 value)
         {
             Debug.Assert(value <= 0xfffffff);
 

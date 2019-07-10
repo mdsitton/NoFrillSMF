@@ -15,13 +15,12 @@ namespace NoFrillSMF.Events
     {
         UInt32 DeltaTick { get; }
         byte Status { get; }
-        int Length { get; }
-        int TotalSize { get; }
+        UInt32 Size { get; }
+        UInt32 TotalSize { get; }
 
         IEvent Previous { get; set; }
 
         void Parse(byte[] data, ref int offset);
-        void Compose(byte[] data, ref int pos);
+        void Compose(byte[] data, ref int offset);
     }
-
 }
