@@ -41,14 +41,16 @@ namespace NoFrillSMF.Chunks
 
                 // TODO - Cache these instances
                 Events.IEventTypeProcessor processor = EventUtils.EventProcessorFactory(state.status);
-                processor.Parse(chunkData, ref pos, state);
 
                 state.prevEvent = state.eventElement;
-                state.eventElement.DeltaTick = state.deltaTicks;
 
+                processor.Parse(chunkData, ref pos, state);
+
+                state.eventElement.DeltaTick = state.deltaTicks;
                 state.eventElement.Previous = state.prevEvent;
-                events.Add(state.eventElement);
                 state.eventElement.Parse(chunkData, ref pos);
+
+                events.Add(state.eventElement);
             }
         }
 

@@ -15,6 +15,7 @@ namespace NoFrillSMF
 
         public void ReadData(Stream data)
         {
+            chunks.Clear();
             if (!data.CanRead)
                 throw new NotSupportedException("Stream does not support reading.");
 
@@ -42,6 +43,14 @@ namespace NoFrillSMF
                 chunks.Add(chunk);
                 chunkCount++;
                 //Console.WriteLine(chunkCount);
+            }
+        }
+
+        public void Parse()
+        {
+            foreach (IChunk chnk in chunks)
+            {
+                chnk.Parse();
             }
         }
 
