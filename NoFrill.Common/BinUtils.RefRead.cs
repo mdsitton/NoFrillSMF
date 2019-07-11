@@ -10,6 +10,22 @@ namespace NoFrill.Common
     {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int32 ReadInt24LE(this byte[] buff, ref int offset)
+        {
+            Int32 val = ReadInt24LE(buff, offset);
+            offset += 3;
+            return val;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Int32 ReadInt24BE(this byte[] buff, ref int offset)
+        {
+            Int32 val = ReadInt24BE(buff, offset);
+            offset += 3;
+            return val;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt32 ReadUInt24LE(this byte[] buff, ref int offset)
         {
             UInt32 val = ReadUInt24LE(buff, offset);
