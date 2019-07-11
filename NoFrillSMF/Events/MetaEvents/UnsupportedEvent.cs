@@ -10,8 +10,12 @@ namespace NoFrillSMF.Events.MetaEvents
         public override void Parse(byte[] data, ref int offset)
         {
             ParseStatus(data, ref offset);
-            dataBlock = new byte[Size];
-            data.ReadBytes(ref offset, dataBlock, Size);
+            if (Size > 0)
+            {
+                dataBlock = new byte[Size];
+                data.ReadBytes(ref offset, dataBlock, Size);
+            }
+
         }
 
         public override void Compose(byte[] data, ref int offset)

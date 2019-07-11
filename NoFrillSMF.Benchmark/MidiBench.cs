@@ -14,21 +14,28 @@ namespace NoFrillSMF.Benchmark
         MemoryStream ms;
         byte[] src;
 
+        MidiFile reader = new MidiFile();
+
         [GlobalSetup]
         public void Setup()
         {
             // = File.ReadAllBytes(fileName);
             //ms = new MemoryStream(src);
-        }
 
-        [Benchmark]
-        public void NAudioMidi()
-        {
             using (FileStream fs = File.OpenRead(fileName))
             {
-                var mf = new NAudio.Midi.MidiFile(fs, false);
+                reader.ReadData(fs);
             }
         }
+
+        // [Benchmark]
+        // public void NAudioMidi()
+        // {
+        //     using (FileStream fs = File.OpenRead(fileName))
+        //     {
+        //         var mf = new NAudio.Midi.MidiFile(fs, false);
+        //     }
+        // }
 
         // [Benchmark]
         // public void DryWetMidi()
@@ -41,13 +48,7 @@ namespace NoFrillSMF.Benchmark
         public void NoFrillSMF()
         {
             //ms.Position = 0;
-
-            MidiFile reader = new MidiFile();
-
-            using (FileStream fs = File.OpenRead(fileName))
-            {
-                reader.ReadData(fs);
-            }
+            reader.Parse();
         }
     }
 }

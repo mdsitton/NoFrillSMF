@@ -45,21 +45,15 @@ namespace NoFrillSMF.Events
                 case MidiMetaEvent.SequencerSpecific:
                     return new MetaEvents.UnsupportedEvent();
                 default:
-                    return new MetaEvents.UnsupportedEvent();
+                    throw new Exception("Unknown event type");
             }
         }
 
         public void Parse(byte[] data, ref int offset, Chunks.TrackParseState state)
         {
-            MidiMetaEvent metaType = (MidiMetaEvent)data.ReadByte(ref offset);
-            UInt32 size = data.ReadVlv(ref offset);
-
+            //byte status = data.ReadByte(ref offset);
+            MidiMetaEvent metaType = (MidiMetaEvent)data.ReadByte(offset + 1);
             state.eventElement = MetaEventFactory(metaType);
-            if (state.eventElement is BaseMetaEvent ev)
-            {
-                ev.Size = size;
-                offset += (int)size;
-            }
         }
 
         public void Compose(byte[] data, ref int offset, Chunks.TrackParseState state)

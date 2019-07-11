@@ -23,7 +23,7 @@ namespace NoFrillSMF.Events
         public UInt32 Size { get; private set; }
         public UInt32 TotalSize { get; private set; } // TODO - Make function to figure out length of varlen
 
-        public UInt32 DeltaTick { get; private set; }
+        public UInt32 DeltaTick { get; set; }
 
         public IEvent Previous { get; set; }
 

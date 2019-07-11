@@ -20,6 +20,9 @@ namespace NoFrillSMF.Console
             {
                 reader.ReadData(file);
             }
+
+            reader.Parse();
+
             using (Stream file = File.OpenWrite(args[1]))
             {
                 reader.WriteData(file);

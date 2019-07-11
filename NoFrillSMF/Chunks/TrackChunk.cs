@@ -13,7 +13,7 @@ namespace NoFrillSMF.Chunks
         public uint Length { get; private set; }
 
         protected byte[] chunkData;
-        protected List<IEvent> events;
+        protected List<IEvent> events = new List<IEvent>();
         protected TrackParseState state = new TrackParseState();
 
         public void Read(Stream data, uint chunkLength)
@@ -30,6 +30,7 @@ namespace NoFrillSMF.Chunks
 
         public void Parse()
         {
+            events.Clear();
             int pos = 0;
 
             while (pos < Length)
@@ -43,6 +44,7 @@ namespace NoFrillSMF.Chunks
                 processor.Parse(chunkData, ref pos, state);
 
                 state.prevEvent = state.eventElement;
+                state.eventElement.DeltaTick = state.deltaTicks;
 
                 state.eventElement.Previous = state.prevEvent;
                 events.Add(state.eventElement);
