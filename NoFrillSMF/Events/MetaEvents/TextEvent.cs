@@ -3,20 +3,20 @@ using NoFrill.Common;
 
 namespace NoFrillSMF.Events.MetaEvents
 {
-    public class SequenceNumberEvent : BaseMetaEvent
+    public class TextEvent : BaseMetaEvent
     {
-        public UInt16 SequenceNumber { get; private set; }
+        public string Text { get; private set; }
 
         public override void Parse(byte[] data, ref int offset)
         {
             ParseStatus(data, ref offset);
-            SequenceNumber = data.ReadUInt16BE(ref offset);
+            Text = data.ReadString(ref offset, (int)Size);
         }
 
         public override void Compose(byte[] data, ref int offset)
         {
             ComposeStatus(data, ref offset);
-            data.WriteUInt16BE(ref offset, SequenceNumber);
+            data.WriteString(ref offset, Text);
         }
     }
 }

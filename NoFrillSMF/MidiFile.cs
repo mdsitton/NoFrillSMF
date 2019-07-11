@@ -26,7 +26,7 @@ namespace NoFrillSMF
 
             while (data.Position < fileSize)
             {
-                string str = data.ReadString(dataBuffer, size: 4);
+                string str = data.ReadString(size: 4);
                 UInt32 chunkLength = data.ReadUInt32BE();
 
                 if (chunkLength > fileSize)
@@ -57,9 +57,7 @@ namespace NoFrillSMF
 
             foreach (IChunk chunk in chunks)
             {
-                // TODO - Split these out into Utilities
-                data.Write(Encoding.ASCII.GetBytes(chunk.TypeStr), 0, 4);
-
+                data.WriteString(chunk.TypeStr);
                 data.WriteUInt32BE(chunk.Length);
                 chunk.Write(data);
             }

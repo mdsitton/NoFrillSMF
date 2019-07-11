@@ -5,6 +5,7 @@
     <LangVersion>7.3</LangVersion>
     <Authors>Matthew Sitton</Authors>
     <Version>0.0.1-prealpha</Version>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

@@ -10,7 +10,6 @@ namespace NoFrillSMF.Events.MidiEvents
         public override void Parse(byte[] data, ref int offset)
         {
             ParseStatus(data, ref offset);
-
             note = data.ReadByte(ref offset);
             pressure = data.ReadByte(ref offset);
         }

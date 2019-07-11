@@ -7,14 +7,45 @@ namespace NoFrillSMF
 {
     public static class ArrayParseUtils
     {
+
+        [ThreadStatic] static byte[] scratchData;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static string ReadString(this byte[] data, ref int offset, byte[] scratch, int size, Encoding encoding = null)
+        private static byte[] EnsureScratch(int size)
         {
+            if (scratchData == null || scratchData.Length < size)
+            {
+                scratchData = new byte[size];
+            }
+
+            return scratchData;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string ReadString(this byte[] data, ref int offset, int size, Encoding encoding = null)
+        {
+            byte[] scratch = EnsureScratch(size);
             encoding = encoding ?? Encoding.ASCII;
 
             Unsafe.CopyBlockUnaligned(ref scratch[0], ref data[offset], (uint)size);
             offset += size;
             return encoding.GetString(scratch);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public unsafe static int WriteString(this byte[] data, ref int offset, string str, Encoding encoding = null)
+        {
+            byte[] scratch = EnsureScratch(str.Length);
+            encoding = encoding ?? Encoding.ASCII;
+            int count = 0;
+            fixed (char* chr = str)
+            {
+                count = encoding.GetBytes(chr, 0, (byte*)Unsafe.AsPointer(ref scratch[0]), scratch.Length);
+            }
+
+            Unsafe.CopyBlockUnaligned(ref data[offset], ref scratch[0], (uint)count);
+            offset += count;
+            return count;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
