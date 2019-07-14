@@ -18,17 +18,19 @@ namespace NoFrillSMF.Events
 
     public abstract class BaseMidiEvent : IEvent
     {
-        public byte Status { get; set; }
 
-        public UInt32 Size { get; private set; }
-        public UInt32 TotalSize { get; private set; } // TODO - Make function to figure out length of varlen
+        public int EventID { get; set; }
+        public byte Status { get; internal set; }
+
+        public UInt32 Size { get; internal set; }
+        public UInt32 TotalSize { get; internal set; } // TODO - Make function to figure out length of varlen
 
         public UInt32 DeltaTick { get; set; }
 
         public IEvent Previous { get; set; }
 
-        public MidiChannelMessage Message { get; protected set; }
-        public byte Channel { get; protected set; }
+        public MidiChannelMessage Message { get; internal set; }
+        public byte Channel { get; internal set; }
 
         protected void ParseStatus(byte[] data, ref int offset)
         {

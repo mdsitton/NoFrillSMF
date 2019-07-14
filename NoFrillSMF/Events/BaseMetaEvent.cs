@@ -40,6 +40,7 @@ namespace NoFrillSMF.Events
 
     public abstract class BaseMetaEvent : IEvent
     {
+        public int EventID { get; set; }
         public byte Status { get; set; }
         public byte MetaType { get; private set; }
 

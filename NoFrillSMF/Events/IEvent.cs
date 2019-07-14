@@ -13,6 +13,7 @@ namespace NoFrillSMF.Events
 
     public interface IEvent
     {
+        int EventID { get; set; }
         UInt32 DeltaTick { get; set; }
         byte Status { get; }
         UInt32 Size { get; }

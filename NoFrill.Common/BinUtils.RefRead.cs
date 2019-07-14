@@ -148,9 +148,7 @@ namespace NoFrill.Common
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte ReadByte(this byte[] buff, ref int offset)
         {
-            byte val = ReadByte(buff, offset);
-            offset += 1;
-            return val;
+            return buff[offset++];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

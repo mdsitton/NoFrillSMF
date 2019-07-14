@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/NoFrillSMF.Tests/NoFrillSMF.Tests.csproj"
+                "${workspaceFolder}/NoFrillSMF.Console/NoFrillSMF.Console.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -17,7 +17,7 @@
             "type": "process",
             "args": [
                 "publish",
-                "${workspaceFolder}/NoFrillSMF.Tests/NoFrillSMF.Tests.csproj"
+                "${workspaceFolder}/NoFrillSMF.Console/NoFrillSMF.Console.csproj"
             ],
             "problemMatcher": "$tsc"
         },
@@ -28,7 +28,7 @@
             "args": [
                 "watch",
                 "run",
-                "${workspaceFolder}/NoFrillSMF.Tests/NoFrillSMF.Tests.csproj"
+                "${workspaceFolder}/NoFrillSMF.Console/NoFrillSMF.Console.csproj"
             ],
             "problemMatcher": "$tsc"
         }

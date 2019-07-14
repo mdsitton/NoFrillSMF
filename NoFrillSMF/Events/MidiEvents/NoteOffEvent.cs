@@ -1,11 +1,13 @@
-﻿using NoFrill.Common;
+using System;
+using NoFrill.Common;
 
 namespace NoFrillSMF.Events.MidiEvents
 {
     public class NoteOffEvent : BaseMidiEvent
     {
-        public byte note { get; private set; }
-        public byte velocity { get; private set; }
+        public byte note { get; internal set; }
+        public byte velocity { get; internal set; }
+
 
         public override void Parse(byte[] data, ref int offset)
         {
