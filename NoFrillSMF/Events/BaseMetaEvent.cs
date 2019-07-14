@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System;
 using NoFrill.Common;
 
@@ -53,6 +54,7 @@ namespace NoFrillSMF.Events
         {
             Status = data.ReadByte(ref offset);
             MetaType = data.ReadByte(ref offset);
+            Debug.Assert(Status == 0xFF);
             Size = data.ReadVlv(ref offset);
         }
 

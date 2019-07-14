@@ -29,7 +29,7 @@ namespace NoFrillSMF
 
             Unsafe.CopyBlockUnaligned(ref scratch[0], ref data[offset], (uint)size);
             offset += size;
-            return encoding.GetString(scratch);
+            return encoding.GetString(scratch, 0, size);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -40,7 +40,7 @@ namespace NoFrillSMF
             int count = 0;
             fixed (char* chr = str)
             {
-                count = encoding.GetBytes(chr, 0, (byte*)Unsafe.AsPointer(ref scratch[0]), scratch.Length);
+                count = encoding.GetBytes(chr, str.Length, (byte*)Unsafe.AsPointer(ref scratch[0]), scratch.Length);
             }
 
             Unsafe.CopyBlockUnaligned(ref data[offset], ref scratch[0], (uint)count);

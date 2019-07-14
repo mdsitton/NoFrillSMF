@@ -27,6 +27,7 @@ namespace NoFrillSMF.Console
             {
                 reader.WriteData(file);
             }
+            System.Console.WriteLine("Finished");
             return 0;
         }
     }
