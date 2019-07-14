@@ -23,7 +23,12 @@ namespace NoFrillSMF.Console
 
             reader.Parse();
 
-            using (Stream file = File.OpenWrite(args[1]))
+            if (File.Exists(args[1]))
+            {
+                File.Delete(args[1]);
+            }
+
+            using (Stream file = new FileStream(args[1], FileMode.CreateNew))
             {
                 reader.WriteData(file);
             }
