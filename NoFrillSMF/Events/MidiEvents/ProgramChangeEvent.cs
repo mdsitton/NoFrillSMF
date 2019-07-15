@@ -4,7 +4,7 @@ namespace NoFrillSMF.Events.MidiEvents
 {
     public class ProgramChangeEvent : BaseMidiEvent
     {
-        public byte program { get; private set; }
+        public byte program;
 
         public override void Parse(byte[] data, ref int offset)
         {

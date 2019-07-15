@@ -6,19 +6,19 @@ using NoFrill.Common;
 using NoFrillSMF.Events;
 using NoFrillSMF.Events.MidiEvents;
 using System.Linq;
+using System.Buffers;
 
 namespace NoFrillSMF.Chunks
 {
-    public class TrackChunk : IChunk
+    public class TrackChunk
     {
         public string TypeStr => "MTrk";
 
         public uint Length { get; private set; }
 
         protected byte[] chunkData;
-        protected List<IEvent> events = new List<IEvent>();
+        protected List<TrackEvent> events = new List<TrackEvent>();
         protected TrackParseState state = new TrackParseState();
-
 
         Stack<NoteOnEvent>[] notesActive;
 
@@ -83,6 +83,32 @@ namespace NoFrillSMF.Chunks
 
         public static uint CalcIndex(byte note, byte channel) => ((uint)channel << 7) | note; // equivelent to channel * 128 + note
 
+        public void MatchNoteEvents()
+        {
+            // Handle note on/off event matching, as well as converting vel 0 noteon's to note off events.
+            if (state.eventElement is NoteOnEvent noteOn)
+            {
+                uint key = CalcIndex(noteOn.note, noteOn.Channel);
+                if (noteOn.velocity == 0 && notesActive[key].Count > 0)
+                {
+                    NoteOffEvent off = noteOn.ToOffEvent();
+                    NoteOnEvent on = notesActive[key].Pop();
+                    on.NoteOff = off;
+                    state.eventElement = off;
+                }
+                else
+                {
+                    notesActive[key].Push(noteOn);
+                }
+            }
+            else if (state.eventElement is NoteOffEvent noteOff)
+            {
+                uint key = CalcIndex(noteOff.note, noteOff.Channel);
+                NoteOnEvent on = notesActive[key].Pop();
+                on.NoteOff = noteOff;
+            }
+        }
+
         public void Parse()
         {
             events.Clear();
@@ -101,32 +127,28 @@ namespace NoFrillSMF.Chunks
                 state.eventElement.EventID = events.Count;
                 state.eventElement.Parse(chunkData, ref pos);
 
-                // Handle note on/off event matching, as well as converting vel 0 noteon's to note off events.
-                if (state.eventElement is NoteOnEvent noteOn)
-                {
-                    uint key = CalcIndex(noteOn.note, noteOn.Channel);
-                    if (noteOn.velocity == 0 && notesActive[key].Count > 0)
-                    {
-                        NoteOffEvent off = noteOn.ToOffEvent();
-                        NoteOnEvent on = notesActive[key].Pop();
-                        on.NoteOff = off;
-                        state.eventElement = off;
-                    }
-                    else
-                    {
-                        notesActive[key].Push(noteOn);
-                    }
-                }
-                else if (state.eventElement is NoteOffEvent noteOff)
-                {
-                    uint key = CalcIndex(noteOff.note, noteOff.Channel);
-                    NoteOnEvent on = notesActive[key].Pop();
-                    on.NoteOff = noteOff;
-                }
+                MatchNoteEvents();
 
                 events.Add(state.eventElement);
             }
         }
+
+        // public T GetEvents<T>() where T : class, TrackEvent
+        // {
+        //     Type tType = typeof(T);
+        //     Type midiDataType;
+
+        //     int pos = 0;
+        //     while (pos < Length)
+        //     {
+
+        //         state.deltaTicks = chunkData.ReadVlv(ref pos);
+        //         state.tickTime += state.deltaTicks;
+        //         state.status = chunkData.ReadByte(pos);
+        //         state.prevEvent = state.eventElement;
+        //     }
+
+        // }
 
         public byte[] Compose()
         {

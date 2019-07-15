@@ -5,7 +5,7 @@ namespace NoFrillSMF.Events.MetaEvents
 {
     public class TextEvent : BaseMetaEvent
     {
-        public string Text { get; private set; } = "";
+        public string Text = "";
 
         public override void Parse(byte[] data, ref int offset)
         {

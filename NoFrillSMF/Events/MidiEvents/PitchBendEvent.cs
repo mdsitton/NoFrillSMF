@@ -5,8 +5,8 @@ namespace NoFrillSMF.Events.MidiEvents
 {
     public class PitchBendEvent : BaseMidiEvent
     {
-        public byte pitchLow { get; private set; }
-        public byte pitchHigh { get; private set; }
+        public byte pitchLow;
+        public byte pitchHigh;
 
         public override void Parse(byte[] data, ref int offset)
         {

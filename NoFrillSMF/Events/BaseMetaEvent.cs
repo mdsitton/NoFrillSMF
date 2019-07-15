@@ -38,18 +38,9 @@ namespace NoFrillSMF.Events
         SequencerSpecific = 0x7F,
     };
 
-    public abstract class BaseMetaEvent : IEvent
+    public abstract class BaseMetaEvent : TrackEvent
     {
-        public int EventID { get; set; }
-        public byte Status { get; set; }
-        public byte MetaType { get; private set; }
-
-        public UInt32 Size { get; set; }
-        public UInt32 TotalSize { get; private set; } // TODO - Make function to figure out length of varlen
-
-        public UInt32 DeltaTick { get; set; }
-
-        public IEvent Previous { get; set; }
+        public byte MetaType;
 
         protected void ParseStatus(byte[] data, ref int offset)
         {
@@ -65,8 +56,5 @@ namespace NoFrillSMF.Events
             data.WriteByte(ref offset, MetaType);
             data.WriteVlv(ref offset, Size);
         }
-
-        public abstract void Compose(byte[] data, ref int offset);
-        public abstract void Parse(byte[] data, ref int offset);
     }
 }

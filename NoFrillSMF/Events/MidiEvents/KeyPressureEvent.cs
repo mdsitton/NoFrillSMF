@@ -4,8 +4,8 @@ namespace NoFrillSMF.Events.MidiEvents
 {
     public class KeyPressureEvent : BaseMidiEvent
     {
-        public byte note { get; private set; }
-        public byte pressure { get; private set; }
+        public byte note;
+        public byte pressure;
 
         public override void Parse(byte[] data, ref int offset)
         {

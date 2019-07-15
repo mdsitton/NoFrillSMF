@@ -5,10 +5,10 @@ namespace NoFrillSMF.Events.MetaEvents
 {
     public class TimeSignatureEvent : BaseMetaEvent
     {
-        public byte Numerator { get; private set; }
-        public byte Denominator { get; private set; }
-        public byte MidiClocksPerMet { get; private set; }
-        public byte ThirtySecondsPerQuarterNote { get; private set; }
+        public byte Numerator;
+        public byte Denominator;
+        public byte MidiClocksPerMet;
+        public byte ThirtySecondsPerQuarterNote;
 
         public override void Parse(byte[] data, ref int offset)
         {

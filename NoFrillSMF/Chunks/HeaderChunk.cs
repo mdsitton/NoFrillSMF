@@ -2,45 +2,39 @@ using System.Text;
 using System;
 using System.IO;
 using NoFrill.Common;
+using System.Buffers;
 
 namespace NoFrillSMF.Chunks
 {
-    internal class HeaderChunk : IChunk
+    public struct HeaderChunk
     {
         public string TypeStr => "MThd";
-        public UInt32 Length { get; private set; }
-        public UInt16 Format { get; private set; }
-        public UInt16 TrackCount { get; private set; }
+        public UInt32 Length;
+        public UInt16 Format;
+        public UInt16 TrackCount;
         private UInt16 rawDivision;
         public UInt16 Division => (UInt16)(rawDivision & ~0x8000);
 
         public bool IsSmpte => (rawDivision & 0x8000) != 0;
 
-        protected byte[] chunkData;
-
-        public void Read(Stream data, UInt32 chunkLength)
+        public void Read(Stream data)
         {
-            Length = chunkLength;
-            chunkData = new byte[chunkLength];
-            data.Read(chunkData, 0, (int)chunkLength);
+            string str = data.ReadString(size: 4);
+
+            if (str != TypeStr)
+                throw new InvalidDataException("Incorrect header chunk type string found");
+
+            Length = data.ReadUInt32BE();
+            Format = data.ReadUInt16BE();
+            TrackCount = data.ReadUInt16BE();
+            rawDivision = data.ReadUInt16BE();
         }
 
         public void Write(Stream data)
         {
-            data.Write(chunkData, 0, chunkData.Length);
-        }
-
-        public void Parse()
-        {
-            int position = 0;
-            Format = chunkData.ReadUInt16BE(ref position);
-            TrackCount = chunkData.ReadUInt16BE(ref position);
-            rawDivision = chunkData.ReadUInt16BE(ref position);
-        }
-
-        public byte[] Compose()
-        {
-            throw new NotImplementedException();
+            data.WriteUInt16BE(Format);
+            data.WriteUInt16BE(TrackCount);
+            data.WriteUInt16BE(rawDivision);
         }
     }
 }

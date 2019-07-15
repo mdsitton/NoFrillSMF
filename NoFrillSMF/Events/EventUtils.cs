@@ -1,12 +1,14 @@
 ﻿using System.Diagnostics;
 using System;
 using NoFrill.Common;
+using System.Runtime.CompilerServices;
 
 namespace NoFrillSMF.Events
 {
     public static class EventUtils
     {
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static BaseMidiEvent MidiEventFactory(MidiChannelMessage message)
         {
             switch (message)
@@ -28,7 +30,29 @@ namespace NoFrillSMF.Events
             }
         }
 
-        public static IEvent MetaEventFactory(MidiMetaEvent metaType)
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // public static Type MidiEventTypes(MidiChannelMessage message)
+        // {
+        //     switch (message)
+        //     {
+        //         case MidiChannelMessage.NoteOn:
+        //             return typeof(MidiEvents.NoteOnEvent);
+        //         case MidiChannelMessage.NoteOff:
+        //             return typeof(MidiEvents.NoteOffEvent);
+        //         case MidiChannelMessage.ControlChange:
+        //             return typeof(MidiEvents.ControlChangeEvent);
+        //         case MidiChannelMessage.ProgramChange:
+        //             return typeof(MidiEvents.ProgramChangeEvent);
+        //         case MidiChannelMessage.ChannelPressure:
+        //             return typeof(MidiEvents.ChannelPressureEvent);
+        //         case MidiChannelMessage.PitchBend:
+        //             return typeof(MidiEvents.PitchBendEvent);
+        //         default:
+        //             return null;
+        //     }
+        // }
+
+        public static TrackEvent MetaEventFactory(MidiMetaEvent metaType)
         {
             switch (metaType)
             {
@@ -71,7 +95,7 @@ namespace NoFrillSMF.Events
             }
         }
 
-        public static T FindLast<T>(IEvent current) where T : class, IEvent
+        public static T FindLast<T>(TrackEvent current) where T : TrackEvent
         {
             while (true)
             {
@@ -81,9 +105,9 @@ namespace NoFrillSMF.Events
             }
         }
 
-        public delegate bool SentinelCheck<T>(T val) where T : class, IEvent;
+        public delegate bool SentinelCheck<T>(T val) where T : TrackEvent;
 
-        public static T FindLast<T>(IEvent current, SentinelCheck<T> check) where T : class, IEvent
+        public static T FindLast<T>(TrackEvent current, SentinelCheck<T> check) where T : TrackEvent
         {
             T val;
             while ((current = current.Previous) != null)

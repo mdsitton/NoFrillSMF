@@ -4,7 +4,7 @@ namespace NoFrillSMF.Events.MidiEvents
 {
     public class ChannelPressureEvent : BaseMidiEvent
     {
-        public byte pressure { get; private set; }
+        public byte pressure;
 
         public override void Parse(byte[] data, ref int offset)
         {

@@ -7,8 +7,8 @@ namespace NoFrillSMF.Chunks
     {
         public UInt64 tickTime = 0;
         public UInt32 deltaTicks = 0;
-        public IEvent eventElement = null;
-        public IEvent prevEvent = null;
+        public TrackEvent eventElement = null;
+        public TrackEvent prevEvent = null;
         public byte status = 0;
     }
 }

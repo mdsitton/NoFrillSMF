@@ -5,7 +5,7 @@ namespace NoFrillSMF.Events.MetaEvents
 {
     public class TempoEvent : BaseMetaEvent
     {
-        public UInt32 Tempo { get; private set; }
+        public UInt32 Tempo;
 
         public override void Parse(byte[] data, ref int offset)
         {

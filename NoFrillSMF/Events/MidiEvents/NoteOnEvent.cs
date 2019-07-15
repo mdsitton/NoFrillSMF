@@ -4,9 +4,9 @@ namespace NoFrillSMF.Events.MidiEvents
 {
     public class NoteOnEvent : BaseMidiEvent
     {
-        public byte note { get; internal set; }
-        public byte velocity { get; internal set; }
-        public NoteOffEvent NoteOff { get; internal set; }
+        public byte note;
+        public byte velocity;
+        public NoteOffEvent NoteOff;
 
         public override void Parse(byte[] data, ref int offset)
         {
