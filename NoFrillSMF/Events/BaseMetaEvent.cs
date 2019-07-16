@@ -4,40 +4,6 @@ using NoFrill.Common;
 
 namespace NoFrillSMF.Events
 {
-    public enum MidiMetaEvent : byte
-    {
-        SequenceNumber = 0x00,
-        Text,
-        Copyright,
-        TrackName,
-        InstrumentName,
-        Lyrics,
-        Marker,
-        CuePoint,
-
-        // RP-019 - SMF Device Name and Program Name Meta Events
-        ProgramName,
-        DeviceName,
-
-        // The midi spec says the following text events exist and act the same as meta_Text.
-        TextReserved3,
-        TextReserved4,
-        TextReserved5,
-        TextReserved6,
-        TextReserved7,
-        TextReserved8, // 0x0F
-
-        MIDIChannelPrefix = 0x20,
-        MIDIPort = 0x21, // obsolete no longer used.
-        EndOfTrack = 0x2F,
-        Tempo = 0x51,
-        SMPTEOffset = 0x54,
-        TimeSignature = 0x58,
-        KeySignature = 0x59,
-        XMFPatchType = 0x60, // For completeness probably wont show up in midi
-        SequencerSpecific = 0x7F,
-    };
-
     public abstract class BaseMetaEvent : TrackEvent
     {
         public byte MetaType;

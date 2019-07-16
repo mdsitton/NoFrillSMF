@@ -9,86 +9,55 @@ namespace NoFrillSMF.Events
     {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static BaseMidiEvent MidiEventFactory(MidiChannelMessage message)
+        public static TrackEvent MidiEventFactory(EventType message)
         {
             switch (message)
             {
-                case MidiChannelMessage.NoteOn:
+                case EventType.NoteOn:
                     return new MidiEvents.NoteOnEvent();
-                case MidiChannelMessage.NoteOff:
+                case EventType.NoteOff:
                     return new MidiEvents.NoteOffEvent();
-                case MidiChannelMessage.ControlChange:
+                case EventType.ControlChange:
                     return new MidiEvents.ControlChangeEvent();
-                case MidiChannelMessage.ProgramChange:
+                case EventType.ProgramChange:
                     return new MidiEvents.ProgramChangeEvent();
-                case MidiChannelMessage.ChannelPressure:
+                case EventType.ChannelPressure:
                     return new MidiEvents.ChannelPressureEvent();
-                case MidiChannelMessage.PitchBend:
+                case EventType.PitchBend:
                     return new MidiEvents.PitchBendEvent();
-                default:
-                    return null;
-            }
-        }
-
-        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        // public static Type MidiEventTypes(MidiChannelMessage message)
-        // {
-        //     switch (message)
-        //     {
-        //         case MidiChannelMessage.NoteOn:
-        //             return typeof(MidiEvents.NoteOnEvent);
-        //         case MidiChannelMessage.NoteOff:
-        //             return typeof(MidiEvents.NoteOffEvent);
-        //         case MidiChannelMessage.ControlChange:
-        //             return typeof(MidiEvents.ControlChangeEvent);
-        //         case MidiChannelMessage.ProgramChange:
-        //             return typeof(MidiEvents.ProgramChangeEvent);
-        //         case MidiChannelMessage.ChannelPressure:
-        //             return typeof(MidiEvents.ChannelPressureEvent);
-        //         case MidiChannelMessage.PitchBend:
-        //             return typeof(MidiEvents.PitchBendEvent);
-        //         default:
-        //             return null;
-        //     }
-        // }
-
-        public static TrackEvent MetaEventFactory(MidiMetaEvent metaType)
-        {
-            switch (metaType)
-            {
-                case MidiMetaEvent.SequenceNumber:
+                case EventType.SequenceNumber:
                     return new MetaEvents.SequenceNumberEvent();
-                case MidiMetaEvent.Text:
-                case MidiMetaEvent.Copyright:
-                case MidiMetaEvent.InstrumentName:
-                case MidiMetaEvent.Lyrics: // TODO - Implement ruby parser for lyrics
-                case MidiMetaEvent.Marker:
-                case MidiMetaEvent.CuePoint:
+                case EventType.Text:
+                case EventType.Copyright:
+                case EventType.InstrumentName:
+                case EventType.Lyrics: // TODO - Implement ruby parser for lyrics
+                case EventType.Marker:
+                case EventType.CuePoint:
                 // RP-019 - SMF Device Name and Program Name Meta Events
-                case MidiMetaEvent.ProgramName:
-                case MidiMetaEvent.DeviceName:
+                case EventType.ProgramName:
+                case EventType.DeviceName:
                 // The midi spec says the following text events exist and act the same as meta_Text.
-                case MidiMetaEvent.TextReserved3:
-                case MidiMetaEvent.TextReserved4:
-                case MidiMetaEvent.TextReserved5:
-                case MidiMetaEvent.TextReserved6:
-                case MidiMetaEvent.TextReserved7:
-                case MidiMetaEvent.TextReserved8:
-                case MidiMetaEvent.TrackName:
+                case EventType.TextReserved3:
+                case EventType.TextReserved4:
+                case EventType.TextReserved5:
+                case EventType.TextReserved6:
+                case EventType.TextReserved7:
+                case EventType.TextReserved8:
+                case EventType.TrackName:
                     return new MetaEvents.TextEvent();
-                case MidiMetaEvent.Tempo:
+                case EventType.Tempo:
                     return new MetaEvents.TempoEvent();
-                case MidiMetaEvent.TimeSignature:
+                case EventType.TimeSignature:
                     return new MetaEvents.TimeSignatureEvent();
-                case MidiMetaEvent.EndOfTrack:
+                case EventType.EndOfTrack:
                     return new MetaEvents.EndOfTrackEvent();
                 // These are mainly here to just represent them existing
-                case MidiMetaEvent.MIDIChannelPrefix:
-                case MidiMetaEvent.MIDIPort:  // obsolete no longer used.
-                case MidiMetaEvent.SMPTEOffset: // Not currently implemented, maybe someday.
-                case MidiMetaEvent.KeySignature: // Not very useful for us
-                case MidiMetaEvent.XMFPatchType: // probably not used
-                case MidiMetaEvent.SequencerSpecific:
+                case EventType.MIDIChannelPrefix:
+                case EventType.MIDIPort:  // obsolete no longer used.
+                case EventType.SMPTEOffset: // Not currently implemented, maybe someday.
+                case EventType.KeySignature: // Not very useful for us
+                case EventType.XMFPatchType: // probably not used
+                case EventType.SequencerSpecific:
                     return new MetaEvents.UnsupportedEvent();
                 default:
                     throw new Exception("Unknown event type");

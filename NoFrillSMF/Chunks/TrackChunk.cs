@@ -43,16 +43,16 @@ namespace NoFrillSMF.Chunks
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void ProcessEvents(byte[] data, ref int offset, Chunks.TrackParseState state)
+        public EventType? ProcessEvents(byte[] data, ref int offset, Chunks.TrackParseState state)
         {
+            EventType? metaType = null;
             switch (state.status)
             {
-                case (byte)EventStatus.MetaEvent:
-                    MidiMetaEvent metaType = (MidiMetaEvent)data.ReadByte(offset + 1);
-                    state.eventElement = EventUtils.MetaEventFactory(metaType);
+                case (byte)EventType.MetaEvent:
+                    metaType = (EventType)data.ReadByte(offset + 1);
                     break;
-                case (byte)EventStatus.SysexEventStart:
-                case (byte)EventStatus.SysexEventEscape:
+                case (byte)EventType.SysexEventStart:
+                case (byte)EventType.SysexEventEscape:
                     offset += (int)data.ReadVlv(ref offset);
                     break;
                 default:
@@ -63,22 +63,20 @@ namespace NoFrillSMF.Chunks
                     }
                     else
                     {
-                        BaseMidiEvent prev = state.prevEvent as BaseMidiEvent;
 
-                        if (prev is null)
+                        if (!(state.eventElement is BaseMidiEvent))
                         {
                             Console.WriteLine("Warning: Incorrect running status found, assuming last midi event status");
-                            prev = EventUtils.FindLast<BaseMidiEvent>(state.prevEvent);
                         }
 
-                        state.status = prev.Status;
+                        state.status = state.prevMidiStatus;
                     }
 
 
-                    MidiChannelMessage message = (MidiChannelMessage)(state.status & 0xF0);
-                    state.eventElement = EventUtils.MidiEventFactory(message);
+                    metaType = (EventType)(state.status & 0xF0);
                     break;
             }
+            return metaType;
         }
 
         public static uint CalcIndex(byte note, byte channel) => ((uint)channel << 7) | note; // equivelent to channel * 128 + note
@@ -117,38 +115,81 @@ namespace NoFrillSMF.Chunks
             {
                 state.deltaTicks = chunkData.ReadVlv(ref pos);
                 state.tickTime += state.deltaTicks;
+
+                if (state.eventElement is BaseMidiEvent)
+                {
+                    state.prevMidiStatus = state.status;
+                }
+
                 state.status = chunkData.ReadByte(pos);
-                state.prevEvent = state.eventElement;
 
-                ProcessEvents(chunkData, ref pos, state);
+                EventType? type = ProcessEvents(chunkData, ref pos, state);
 
-                state.eventElement.DeltaTick = state.deltaTicks;
-                state.eventElement.Previous = state.prevEvent;
-                state.eventElement.EventID = events.Count;
-                state.eventElement.Parse(chunkData, ref pos);
+                if (type != null)
+                {
+                    TrackEvent ev = EventUtils.MidiEventFactory(type.Value);
+                    ev.Previous = state.eventElement;
+                    state.eventElement = ev;
+                    state.eventElement.DeltaTick = state.deltaTicks;
+                    state.eventElement.EventID = events.Count;
+                    state.eventElement.Parse(chunkData, ref pos);
 
-                MatchNoteEvents();
+                    MatchNoteEvents();
 
-                events.Add(state.eventElement);
+                    events.Add(state.eventElement);
+                }
+
             }
         }
 
-        // public T GetEvents<T>() where T : class, TrackEvent
-        // {
-        //     Type tType = typeof(T);
-        //     Type midiDataType;
+        public IEnumerable<NoteOnEvent> GetEvents()
+        {
 
-        //     int pos = 0;
-        //     while (pos < Length)
-        //     {
 
-        //         state.deltaTicks = chunkData.ReadVlv(ref pos);
-        //         state.tickTime += state.deltaTicks;
-        //         state.status = chunkData.ReadByte(pos);
-        //         state.prevEvent = state.eventElement;
-        //     }
+            NoteOnEvent ev = new NoteOnEvent();
+            TrackParseState localState = new TrackParseState();
+            localState.eventElement = ev;
+            int pos = 0;
+            while (pos < Length)
+            {
 
-        // }
+                localState.deltaTicks = chunkData.ReadVlv(ref pos);
+                localState.tickTime += localState.deltaTicks;
+
+                if (localState.eventElement is BaseMidiEvent)
+                {
+                    localState.prevMidiStatus = localState.status;
+                }
+
+                localState.status = chunkData.ReadByte(pos);
+
+                EventType? type = ProcessEvents(chunkData, ref pos, localState);
+                if (type != null)
+                {
+                    if (type == EventType.NoteOn || type == EventType.NoteOff)
+                    {
+                        localState.eventElement.DeltaTick = localState.deltaTicks;
+                        localState.eventElement.EventID = events.Count;
+                        localState.eventElement.Parse(chunkData, ref pos);
+                        yield return localState.eventElement as NoteOnEvent;
+                    }
+                    else if (localState.status == (byte)EventType.SysexEventEscape || localState.status == (byte)EventType.SysexEventStart)
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        var other = EventUtils.MidiEventFactory(type.Value);
+                        other.Parse(chunkData, ref pos);
+                    }
+
+
+                    //MatchNoteEvents();
+
+                }
+            }
+
+        }
 
         public byte[] Compose()
         {

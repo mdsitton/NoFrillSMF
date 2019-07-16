@@ -31,7 +31,7 @@ namespace NoFrillSMF.Events.MidiEvents
             off.Status = Status;
             off.Size = Size;
             off.DeltaTick = DeltaTick;
-            off.Message = MidiChannelMessage.NoteOff;
+            off.eventType = EventType.NoteOff;
             off.Channel = Channel;
             off.Previous = Previous;
             return off;
