@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace NoFrillSMF.Events
 {
@@ -62,5 +63,64 @@ namespace NoFrillSMF.Events
 
         public abstract void Parse(byte[] data, ref int offset);
         public abstract void Compose(byte[] data, ref int offset);
+
+        public static MidiEvents.NoteOnEvent NoteOnEvent { get; private set; } = new MidiEvents.NoteOnEvent();
+        public static MidiEvents.NoteOffEvent NoteOffEvent { get; private set; } = new MidiEvents.NoteOffEvent();
+        public static MidiEvents.ControlChangeEvent ControlChangeEvent { get; private set; } = new MidiEvents.ControlChangeEvent();
+        public static MidiEvents.ProgramChangeEvent ProgramChangeEvent { get; private set; } = new MidiEvents.ProgramChangeEvent();
+        public static MidiEvents.ChannelPressureEvent ChannelPressureEvent { get; private set; } = new MidiEvents.ChannelPressureEvent();
+        public static MidiEvents.PitchBendEvent PitchBendEvent { get; private set; } = new MidiEvents.PitchBendEvent();
+        public static MetaEvents.SequenceNumberEvent SequenceNumberEvent { get; private set; } = new MetaEvents.SequenceNumberEvent();
+        public static MetaEvents.TextEvent TextEvent { get; private set; } = new MetaEvents.TextEvent();
+        public static MetaEvents.TempoEvent TempoEvent { get; private set; } = new MetaEvents.TempoEvent();
+        public static MetaEvents.TimeSignatureEvent TimeSignatureEvent { get; private set; } = new MetaEvents.TimeSignatureEvent();
+        public static MetaEvents.EndOfTrackEvent EndOfTrackEvent { get; private set; } = new MetaEvents.EndOfTrackEvent();
+        public static MetaEvents.UnsupportedEvent UnsupportedEvent { get; private set; } = new MetaEvents.UnsupportedEvent();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TrackEvent GetStaticEvents(EventType eventType)
+        {
+            switch (eventType)
+            {
+                case EventType.NoteOn:
+                    return TrackEvent.NoteOnEvent;
+                case EventType.NoteOff:
+                    return TrackEvent.NoteOffEvent;
+                case EventType.ControlChange:
+                    return TrackEvent.ControlChangeEvent;
+                case EventType.ProgramChange:
+                    return TrackEvent.ProgramChangeEvent;
+                case EventType.ChannelPressure:
+                    return TrackEvent.ChannelPressureEvent;
+                case EventType.PitchBend:
+                    return TrackEvent.PitchBendEvent;
+                case EventType.SequenceNumber:
+                    return TrackEvent.SequenceNumberEvent;
+                case EventType.Text:
+                case EventType.Copyright:
+                case EventType.InstrumentName:
+                case EventType.Lyrics:
+                case EventType.Marker:
+                case EventType.CuePoint:
+                case EventType.ProgramName:
+                case EventType.DeviceName:
+                case EventType.TextReserved3:
+                case EventType.TextReserved4:
+                case EventType.TextReserved5:
+                case EventType.TextReserved6:
+                case EventType.TextReserved7:
+                case EventType.TextReserved8:
+                case EventType.TrackName:
+                    return TrackEvent.TextEvent;
+                case EventType.Tempo:
+                    return TrackEvent.TempoEvent;
+                case EventType.TimeSignature:
+                    return TrackEvent.TimeSignatureEvent;
+                case EventType.EndOfTrack:
+                    return TrackEvent.EndOfTrackEvent;
+                default:
+                    return TrackEvent.UnsupportedEvent;
+            }
+        }
     }
 }

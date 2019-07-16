@@ -7,7 +7,6 @@ namespace NoFrillSMF.Events
 {
     public static class EventUtils
     {
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TrackEvent MidiEventFactory(EventType message)
         {

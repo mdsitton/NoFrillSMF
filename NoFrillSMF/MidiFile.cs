@@ -13,6 +13,12 @@ namespace NoFrillSMF
     {
         protected HeaderChunk headerChunk = new HeaderChunk();
         protected List<TrackChunk> trackChunks = new List<TrackChunk>();
+        private readonly bool noteEventMatching;
+
+        public MidiFile(bool noteEventMatching = true)
+        {
+            this.noteEventMatching = noteEventMatching;
+        }
 
         public void ReadData(Stream data)
         {
@@ -41,7 +47,7 @@ namespace NoFrillSMF
                 if (str != "MTrk")
                     data.Position += chunkLength;
 
-                TrackChunk chunk = new TrackChunk();
+                TrackChunk chunk = new TrackChunk(noteEventMatching);
                 chunk.Read(data, chunkLength);
                 trackChunks.Add(chunk);
                 trackCount++;

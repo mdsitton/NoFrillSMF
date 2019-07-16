@@ -21,12 +21,15 @@ namespace NoFrillSMF.Chunks
         protected TrackParseState state = new TrackParseState();
 
         Stack<NoteOnEvent>[] notesActive;
+        readonly bool noteEventMatching;
 
-        public TrackChunk()
+        public TrackChunk(bool noteEventMatching = true)
         {
+            this.noteEventMatching = noteEventMatching;
             // Allocate a stack per note per channel, to handle so we can handle matching note on/off events with O(1) complexity.
             // This is important for handling extremely large midi files.
-            notesActive = Enumerable.Repeat(new Stack<NoteOnEvent>(), 128 * 16).ToArray();
+            if (noteEventMatching)
+                notesActive = Enumerable.Repeat(new Stack<NoteOnEvent>(), 128 * 16).ToArray();
         }
 
         public void Read(Stream data, uint chunkLength)
@@ -45,11 +48,11 @@ namespace NoFrillSMF.Chunks
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public EventType? ProcessEvents(byte[] data, ref int offset, Chunks.TrackParseState state)
         {
-            EventType? metaType = null;
+            EventType? evType = null;
             switch (state.status)
             {
                 case (byte)EventType.MetaEvent:
-                    metaType = (EventType)data.ReadByte(offset + 1);
+                    evType = (EventType)data.ReadByte(offset + 1);
                     break;
                 case (byte)EventType.SysexEventStart:
                 case (byte)EventType.SysexEventEscape:
@@ -73,10 +76,10 @@ namespace NoFrillSMF.Chunks
                     }
 
 
-                    metaType = (EventType)(state.status & 0xF0);
+                    evType = (EventType)(state.status & 0xF0);
                     break;
             }
-            return metaType;
+            return evType;
         }
 
         public static uint CalcIndex(byte note, byte channel) => ((uint)channel << 7) | note; // equivelent to channel * 128 + note
@@ -134,7 +137,8 @@ namespace NoFrillSMF.Chunks
                     state.eventElement.EventID = events.Count;
                     state.eventElement.Parse(chunkData, ref pos);
 
-                    MatchNoteEvents();
+                    if (noteEventMatching)
+                        MatchNoteEvents();
 
                     events.Add(state.eventElement);
                 }
@@ -142,13 +146,10 @@ namespace NoFrillSMF.Chunks
             }
         }
 
-        public IEnumerable<NoteOnEvent> GetEvents()
+        public IEnumerable<T> ParseEvents<T>(EventType[] types) where T : TrackEvent
         {
-
-
-            NoteOnEvent ev = new NoteOnEvent();
+            // NoteOnEvent ev = new NoteOnEvent();
             TrackParseState localState = new TrackParseState();
-            localState.eventElement = ev;
             int pos = 0;
             while (pos < Length)
             {
@@ -163,32 +164,31 @@ namespace NoFrillSMF.Chunks
 
                 localState.status = chunkData.ReadByte(pos);
 
-                EventType? type = ProcessEvents(chunkData, ref pos, localState);
-                if (type != null)
+                EventType? typeFound = ProcessEvents(chunkData, ref pos, localState);
+                TrackEvent ev;
+                int eventCount = 0;
+
+                if (typeFound != null)
                 {
-                    if (type == EventType.NoteOn || type == EventType.NoteOff)
-                    {
-                        localState.eventElement.DeltaTick = localState.deltaTicks;
-                        localState.eventElement.EventID = events.Count;
-                        localState.eventElement.Parse(chunkData, ref pos);
-                        yield return localState.eventElement as NoteOnEvent;
-                    }
-                    else if (localState.status == (byte)EventType.SysexEventEscape || localState.status == (byte)EventType.SysexEventStart)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        var other = EventUtils.MidiEventFactory(type.Value);
-                        other.Parse(chunkData, ref pos);
-                    }
+                    ev = TrackEvent.GetStaticEvents(typeFound.Value);
+                    ev.Parse(chunkData, ref pos);
+                    localState.eventElement = ev;
+                    localState.eventElement.DeltaTick = localState.deltaTicks;
+                    localState.eventElement.EventID = eventCount++;
 
-
-                    //MatchNoteEvents();
-
+                    if (ev is T rtnEv)
+                    {
+                        foreach (var t in types)
+                        {
+                            if (t == typeFound.Value)
+                            {
+                                yield return rtnEv;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
-
         }
 
         public byte[] Compose()
