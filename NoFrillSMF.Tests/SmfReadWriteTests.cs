@@ -26,6 +26,7 @@ namespace NoFrillSMF.Tests
 
         [Theory]
         [InlineData("midifiles/C3_Sound.mid")]
+        //[InlineData("midifiles/notes.mid")]
         public void ReadWriteVerifyTest(string midiFile)
         {
             // Arrange

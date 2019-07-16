@@ -5,7 +5,7 @@ namespace NoFrillSMF.Events.MetaEvents
 {
     public class UnsupportedEvent : BaseMetaEvent
     {
-        public byte[] dataBlock { get; private set; }
+        public byte[] dataBlock;
 
         public override void Parse(byte[] data, ref int offset)
         {

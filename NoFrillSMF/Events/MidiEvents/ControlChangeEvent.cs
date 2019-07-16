@@ -4,8 +4,8 @@ namespace NoFrillSMF.Events.MidiEvents
 {
     public class ControlChangeEvent : BaseMidiEvent
     {
-        public byte controller { get; private set; }
-        public byte controlValue { get; private set; }
+        public byte controller;
+        public byte controlValue;
 
         public override void Parse(byte[] data, ref int offset)
         {

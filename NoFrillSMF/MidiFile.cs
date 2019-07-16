@@ -11,24 +11,31 @@ namespace NoFrillSMF
 {
     public class MidiFile
     {
-        protected List<IChunk> chunks = new List<IChunk>();
+        protected HeaderChunk headerChunk = new HeaderChunk();
+        protected List<TrackChunk> trackChunks = new List<TrackChunk>();
+        private readonly bool noteEventMatching;
+
+        public MidiFile(bool noteEventMatching = true)
+        {
+            this.noteEventMatching = noteEventMatching;
+        }
 
         public void ReadData(Stream data)
         {
-            chunks.Clear();
+            trackChunks.Clear();
             if (!data.CanRead)
                 throw new NotSupportedException("Stream does not support reading.");
 
             long fileSize = data.Length;
 
-            IChunk chunk;
-            byte[] dataBuffer = new byte[4];
-            int chunkCount = 0;
+            headerChunk.Read(data);
 
+            int trackCount = 0;
             while (data.Position < fileSize)
             {
                 string str = data.ReadString(size: 4);
                 UInt32 chunkLength = data.ReadUInt32BE();
+
 
                 if (chunkLength > fileSize)
                 {
@@ -37,18 +44,25 @@ namespace NoFrillSMF
                     break;
                 }
 
-                chunk = ChunkMappings.ChunkFactory(str);
+                if (str != "MTrk")
+                    data.Position += chunkLength;
 
+                TrackChunk chunk = new TrackChunk(noteEventMatching);
                 chunk.Read(data, chunkLength);
-                chunks.Add(chunk);
-                chunkCount++;
+                trackChunks.Add(chunk);
+                trackCount++;
                 //Console.WriteLine(chunkCount);
             }
         }
 
+        public IEnumerable<TrackChunk> GetTrackChunks()
+        {
+            return trackChunks;
+        }
+
         public void Parse()
         {
-            foreach (IChunk chnk in chunks)
+            foreach (TrackChunk chnk in trackChunks)
             {
                 chnk.Parse();
             }
@@ -59,12 +73,9 @@ namespace NoFrillSMF
             if (!data.CanWrite)
                 throw new NotSupportedException("Stream does not support reading.");
 
-            if (chunks.Count == 0 && (chunks[0] as HeaderChunk) == null)
-            {
-                throw new FormatException("Header chunk not found");
-            }
+            headerChunk.Write(data);
 
-            foreach (IChunk chunk in chunks)
+            foreach (TrackChunk chunk in trackChunks)
             {
                 data.WriteString(chunk.TypeStr);
                 data.WriteUInt32BE(chunk.Length);

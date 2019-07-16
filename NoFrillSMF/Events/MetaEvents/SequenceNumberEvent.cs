@@ -5,7 +5,7 @@ namespace NoFrillSMF.Events.MetaEvents
 {
     public class SequenceNumberEvent : BaseMetaEvent
     {
-        public UInt16 SequenceNumber { get; private set; }
+        public UInt16 SequenceNumber;
 
         public override void Parse(byte[] data, ref int offset)
         {
