@@ -29,7 +29,7 @@ namespace NoFrill.Common
                 byte* dst = (byte*)Unsafe.AsPointer(ref val) + 1;
                 byte* start = (byte*)Unsafe.AsPointer(ref buff[offset]);
 
-                Unsafe.CopyBlock(dst, start, 3);
+                Unsafe.CopyBlockUnaligned(dst, start, 3);
             }
             return SwapEndianess(val);
         }
@@ -145,6 +145,20 @@ namespace NoFrill.Common
         {
             Unsafe.CopyBlockUnaligned(ref output[0], ref data[offset], count);
             return (int)count;
+        }
+
+        public static int ReadCountLE<T>(this byte[] data, int offset, T[] output, UInt32 count) where T : unmanaged
+        {
+            unsafe
+            {
+                uint outputByteSize = (uint)Unsafe.SizeOf<T>() * count;
+
+                Debug.Assert(outputByteSize >= count);
+                byte* outStart = (byte*)Unsafe.AsPointer<T>(ref output[0]);
+
+                Unsafe.CopyBlockUnaligned(ref Unsafe.AsRef<byte>(outStart), ref data[offset], outputByteSize);
+                return (int)outputByteSize;
+            }
         }
     }
 }

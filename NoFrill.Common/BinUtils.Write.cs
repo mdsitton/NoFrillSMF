@@ -107,7 +107,7 @@ namespace NoFrill.Common
                 byte* src = (byte*)Unsafe.AsPointer(ref value) + 1;
                 byte* destStart = (byte*)Unsafe.AsPointer(ref buff[offset]);
 
-                Unsafe.CopyBlock(destStart, src, 3);
+                Unsafe.CopyBlockUnaligned(destStart, src, 3);
             }
         }
 

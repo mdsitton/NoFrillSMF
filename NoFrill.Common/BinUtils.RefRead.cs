@@ -156,5 +156,10 @@ namespace NoFrill.Common
         {
             offset += ReadBytes(data, offset, output, count);
         }
+
+        public static void ReadCountLE<T>(this byte[] data, ref int offset, T[] output, UInt32 count) where T : unmanaged
+        {
+            offset += ReadCountLE(data, offset, output, count);
+        }
     }
 }

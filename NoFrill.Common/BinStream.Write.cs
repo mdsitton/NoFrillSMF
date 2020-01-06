@@ -111,10 +111,10 @@ namespace NoFrill.Common
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteSByte(this Stream data, byte value)
+        public static void WriteSByte(this Stream data, sbyte value)
         {
             Debug.Assert(data.CanWrite);
-            data.WriteSByte(value);
+            data.WriteByte((byte)value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
