@@ -2,7 +2,6 @@ using System.Text;
 using System;
 using System.IO;
 using NoFrill.Common;
-using System.Buffers;
 
 namespace NoFrillSMF.Chunks
 {

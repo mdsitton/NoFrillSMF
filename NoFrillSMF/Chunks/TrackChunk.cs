@@ -6,7 +6,6 @@ using NoFrill.Common;
 using NoFrillSMF.Events;
 using NoFrillSMF.Events.MidiEvents;
 using System.Linq;
-using System.Buffers;
 
 namespace NoFrillSMF.Chunks
 {

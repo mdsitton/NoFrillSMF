@@ -1,7 +1,7 @@
 using System.IO;
 using System;
 using BenchmarkDotNet.Attributes;
-using Melanchall.DryWetMidi.Smf;
+// using Melanchall.DryWetMidi.Smf;
 using NoFrillSMF;
 using NAudio.Midi;
 
