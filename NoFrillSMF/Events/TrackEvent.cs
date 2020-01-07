@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
+using NoFrill.Common;
+using NoFrillSMF.Chunks;
 
 namespace NoFrillSMF.Events
 {
@@ -51,31 +53,46 @@ namespace NoFrillSMF.Events
         SysexEventEscape = 0xF7,
     };
 
-    public abstract class TrackEvent
+    public abstract class TrackEvent : IPoolable//, IDisposable
     {
         public int EventID;
         public UInt32 DeltaTick;
+        public UInt64 TickTime = 0;
         public byte Status;
         public EventType eventType;
         public UInt32 Size;
-        public UInt32 TotalSize;
         public TrackEvent Previous;
 
-        public abstract void Parse(byte[] data, ref int offset);
+        public abstract void Parse(byte[] data, ref int offset, TrackParseState state);
         public abstract void Compose(byte[] data, ref int offset);
 
-        public static MidiEvents.NoteOnEvent NoteOnEvent { get; private set; } = new MidiEvents.NoteOnEvent();
-        public static MidiEvents.NoteOffEvent NoteOffEvent { get; private set; } = new MidiEvents.NoteOffEvent();
-        public static MidiEvents.ControlChangeEvent ControlChangeEvent { get; private set; } = new MidiEvents.ControlChangeEvent();
-        public static MidiEvents.ProgramChangeEvent ProgramChangeEvent { get; private set; } = new MidiEvents.ProgramChangeEvent();
-        public static MidiEvents.ChannelPressureEvent ChannelPressureEvent { get; private set; } = new MidiEvents.ChannelPressureEvent();
-        public static MidiEvents.PitchBendEvent PitchBendEvent { get; private set; } = new MidiEvents.PitchBendEvent();
-        public static MetaEvents.SequenceNumberEvent SequenceNumberEvent { get; private set; } = new MetaEvents.SequenceNumberEvent();
-        public static MetaEvents.TextEvent TextEvent { get; private set; } = new MetaEvents.TextEvent();
-        public static MetaEvents.TempoEvent TempoEvent { get; private set; } = new MetaEvents.TempoEvent();
-        public static MetaEvents.TimeSignatureEvent TimeSignatureEvent { get; private set; } = new MetaEvents.TimeSignatureEvent();
-        public static MetaEvents.EndOfTrackEvent EndOfTrackEvent { get; private set; } = new MetaEvents.EndOfTrackEvent();
-        public static MetaEvents.UnsupportedEvent UnsupportedEvent { get; private set; } = new MetaEvents.UnsupportedEvent();
+        private static ObjectPool<MidiEvents.NoteOnEvent> noteOnEventPool = new ObjectPool<MidiEvents.NoteOnEvent>(() => new MidiEvents.NoteOnEvent());
+        private static ObjectPool<MidiEvents.NoteOffEvent> noteOffEventPool = new ObjectPool<MidiEvents.NoteOffEvent>(() => new MidiEvents.NoteOffEvent());
+        private static ObjectPool<MidiEvents.ControlChangeEvent> controlChangeEventPool = new ObjectPool<MidiEvents.ControlChangeEvent>(() => new MidiEvents.ControlChangeEvent());
+        private static ObjectPool<MidiEvents.ProgramChangeEvent> programChangeEventPool = new ObjectPool<MidiEvents.ProgramChangeEvent>(() => new MidiEvents.ProgramChangeEvent());
+        private static ObjectPool<MidiEvents.ChannelPressureEvent> channelPressureEventPool = new ObjectPool<MidiEvents.ChannelPressureEvent>(() => new MidiEvents.ChannelPressureEvent());
+        private static ObjectPool<MidiEvents.PitchBendEvent> pitchBendEventPool = new ObjectPool<MidiEvents.PitchBendEvent>(() => new MidiEvents.PitchBendEvent());
+        private static ObjectPool<MetaEvents.SequenceNumberEvent> sequenceNumberEventPool = new ObjectPool<MetaEvents.SequenceNumberEvent>(() => new MetaEvents.SequenceNumberEvent());
+        private static ObjectPool<MetaEvents.TextEvent> textEventPool = new ObjectPool<MetaEvents.TextEvent>(() => new MetaEvents.TextEvent());
+        private static ObjectPool<MetaEvents.TrackNameEvent> trackNameEventPool = new ObjectPool<MetaEvents.TrackNameEvent>(() => new MetaEvents.TrackNameEvent());
+        private static ObjectPool<MetaEvents.TempoEvent> tempoEventPool = new ObjectPool<MetaEvents.TempoEvent>(() => new MetaEvents.TempoEvent());
+        private static ObjectPool<MetaEvents.TimeSignatureEvent> timeSignatureEventPool = new ObjectPool<MetaEvents.TimeSignatureEvent>(() => new MetaEvents.TimeSignatureEvent());
+        private static ObjectPool<MetaEvents.EndOfTrackEvent> endOfTrackEventPool = new ObjectPool<MetaEvents.EndOfTrackEvent>(() => new MetaEvents.EndOfTrackEvent());
+        private static ObjectPool<MetaEvents.UnsupportedEvent> unsupportedEventPool = new ObjectPool<MetaEvents.UnsupportedEvent>(() => new MetaEvents.UnsupportedEvent());
+
+        public static MidiEvents.NoteOnEvent NoteOnEvent = noteOnEventPool.Request();
+        public static MidiEvents.NoteOffEvent NoteOffEvent = noteOffEventPool.Request();
+        public static MidiEvents.ControlChangeEvent ControlChangeEvent = controlChangeEventPool.Request();
+        public static MidiEvents.ProgramChangeEvent ProgramChangeEvent = programChangeEventPool.Request();
+        public static MidiEvents.ChannelPressureEvent ChannelPressureEvent = channelPressureEventPool.Request();
+        public static MidiEvents.PitchBendEvent PitchBendEvent = pitchBendEventPool.Request();
+        public static MetaEvents.SequenceNumberEvent SequenceNumberEvent = sequenceNumberEventPool.Request();
+        public static MetaEvents.TextEvent TextEvent = textEventPool.Request();
+        public static MetaEvents.TrackNameEvent TrackNameEvent = trackNameEventPool.Request();
+        public static MetaEvents.TempoEvent TempoEvent = tempoEventPool.Request();
+        public static MetaEvents.TimeSignatureEvent TimeSignatureEvent = timeSignatureEventPool.Request();
+        public static MetaEvents.EndOfTrackEvent EndOfTrackEvent = endOfTrackEventPool.Request();
+        public static MetaEvents.UnsupportedEvent UnsupportedEvent = unsupportedEventPool.Request();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TrackEvent GetStaticEvents(EventType eventType)
@@ -83,19 +100,119 @@ namespace NoFrillSMF.Events
             switch (eventType)
             {
                 case EventType.NoteOn:
-                    return TrackEvent.NoteOnEvent;
+                    return TrackEvent.noteOnEventPool.Request();
                 case EventType.NoteOff:
-                    return TrackEvent.NoteOffEvent;
+                    return TrackEvent.noteOffEventPool.Request();
                 case EventType.ControlChange:
-                    return TrackEvent.ControlChangeEvent;
+                    return TrackEvent.controlChangeEventPool.Request();
                 case EventType.ProgramChange:
-                    return TrackEvent.ProgramChangeEvent;
+                    return TrackEvent.programChangeEventPool.Request();
                 case EventType.ChannelPressure:
-                    return TrackEvent.ChannelPressureEvent;
+                    return TrackEvent.channelPressureEventPool.Request();
                 case EventType.PitchBend:
-                    return TrackEvent.PitchBendEvent;
+                    return TrackEvent.pitchBendEventPool.Request();
                 case EventType.SequenceNumber:
-                    return TrackEvent.SequenceNumberEvent;
+                    return TrackEvent.sequenceNumberEventPool.Request();
+                case EventType.Text:
+                case EventType.Copyright:
+                case EventType.InstrumentName:
+                case EventType.Lyrics:
+                case EventType.Marker:
+                case EventType.CuePoint:
+                case EventType.ProgramName:
+                case EventType.DeviceName:
+                case EventType.TextReserved3:
+                case EventType.TextReserved4:
+                case EventType.TextReserved5:
+                case EventType.TextReserved6:
+                case EventType.TextReserved7:
+                case EventType.TextReserved8:
+                    return TrackEvent.textEventPool.Request();
+                case EventType.TrackName:
+                    return TrackEvent.trackNameEventPool.Request();
+                case EventType.Tempo:
+                    return TrackEvent.tempoEventPool.Request();
+                case EventType.TimeSignature:
+                    return TrackEvent.timeSignatureEventPool.Request();
+                case EventType.EndOfTrack:
+                    return TrackEvent.endOfTrackEventPool.Request();
+                default:
+                    return TrackEvent.unsupportedEventPool.Request();
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ReturnStaticEvents(TrackEvent trkEvent)
+        {
+            switch (trkEvent)
+            {
+                case MidiEvents.NoteOnEvent evnt:
+                    TrackEvent.noteOnEventPool.Return(evnt);
+                    break;
+                case MidiEvents.NoteOffEvent evnt:
+                    TrackEvent.noteOffEventPool.Return(evnt);
+                    break;
+                case MidiEvents.ControlChangeEvent evnt:
+                    TrackEvent.controlChangeEventPool.Return(evnt);
+                    break;
+                case MidiEvents.ProgramChangeEvent evnt:
+                    TrackEvent.programChangeEventPool.Return(evnt);
+                    break;
+                case MidiEvents.ChannelPressureEvent evnt:
+                    TrackEvent.channelPressureEventPool.Return(evnt);
+                    break;
+                case MidiEvents.PitchBendEvent evnt:
+                    TrackEvent.pitchBendEventPool.Return(evnt);
+                    break;
+                case MetaEvents.SequenceNumberEvent evnt:
+                    TrackEvent.sequenceNumberEventPool.Return(evnt);
+                    break;
+                case MetaEvents.TrackNameEvent evnt:
+                    TrackEvent.trackNameEventPool.Return(evnt);
+                    break;
+                case MetaEvents.TextEvent evnt:
+                    TrackEvent.textEventPool.Return(evnt);
+                    break;
+                case MetaEvents.TempoEvent evnt:
+                    TrackEvent.tempoEventPool.Return(evnt);
+                    break;
+                case MetaEvents.TimeSignatureEvent evnt:
+                    TrackEvent.timeSignatureEventPool.Return(evnt);
+                    break;
+                case MetaEvents.EndOfTrackEvent evnt:
+                    TrackEvent.endOfTrackEventPool.Return(evnt);
+                    break;
+                case MetaEvents.UnsupportedEvent evnt:
+                    TrackEvent.unsupportedEventPool.Return(evnt);
+                    break;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void FastParse(EventType eventType, byte[] data, ref int offset)
+        {
+            switch (eventType)
+            {
+                case EventType.NoteOn:
+                case EventType.NoteOff:
+                    MidiEvents.NoteEvent.ParseFast(data, ref offset);
+                    break;
+                case EventType.ControlChange:
+                    MidiEvents.ControlChangeEvent.ParseFast(data, ref offset);
+                    break;
+                case EventType.ProgramChange:
+                    MidiEvents.ProgramChangeEvent.ParseFast(data, ref offset);
+                    break;
+                case EventType.ChannelPressure:
+                    MidiEvents.ChannelPressureEvent.ParseFast(data, ref offset);
+                    break;
+                case EventType.PitchBend:
+                    MidiEvents.PitchBendEvent.ParseFast(data, ref offset);
+                    break;
+                case EventType.SysexEventStart:
+                case EventType.SysexEventEscape:
+                    break;
+                case EventType.SequenceNumber:
                 case EventType.Text:
                 case EventType.Copyright:
                 case EventType.InstrumentName:
@@ -111,16 +228,27 @@ namespace NoFrillSMF.Events
                 case EventType.TextReserved7:
                 case EventType.TextReserved8:
                 case EventType.TrackName:
-                    return TrackEvent.TextEvent;
                 case EventType.Tempo:
-                    return TrackEvent.TempoEvent;
                 case EventType.TimeSignature:
-                    return TrackEvent.TimeSignatureEvent;
                 case EventType.EndOfTrack:
-                    return TrackEvent.EndOfTrackEvent;
+                    BaseMetaEvent.ParseFast(data, ref offset);
+                    break;
                 default:
-                    return TrackEvent.UnsupportedEvent;
+                    BaseMetaEvent.ParseFast(data, ref offset);
+                    break;
+
             }
+        }
+
+        public virtual void Clear()
+        {
+            EventID = 0;
+            DeltaTick = 0;
+            TickTime = 0;
+            Status = 0;
+            eventType = default;
+            Size = 0;
+            Previous = null;
         }
     }
 }

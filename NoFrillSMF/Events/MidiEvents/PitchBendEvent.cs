@@ -1,26 +1,39 @@
 ﻿using System;
 using NoFrill.Common;
+using NoFrillSMF.Chunks;
 
 namespace NoFrillSMF.Events.MidiEvents
 {
     public class PitchBendEvent : BaseMidiEvent
     {
-        public byte pitchLow;
-        public byte pitchHigh;
+        public byte PitchLow;
+        public byte PitchHigh;
 
-        public override void Parse(byte[] data, ref int offset)
+        public override void Parse(byte[] data, ref int offset, TrackParseState state)
         {
-            ParseStatus(data, ref offset);
+            ParseStatus(data, ref offset, state);
 
-            pitchLow = data.ReadByte(ref offset);
-            pitchHigh = data.ReadByte(ref offset);
+            PitchLow = data.ReadByte(ref offset);
+            PitchHigh = data.ReadByte(ref offset);
         }
 
         public override void Compose(byte[] data, ref int offset)
         {
             ComposeStatus(data, ref offset);
-            data.WriteByte(ref offset, pitchLow);
-            data.WriteByte(ref offset, pitchHigh);
+            data.WriteByte(ref offset, PitchLow);
+            data.WriteByte(ref offset, PitchHigh);
+        }
+
+        public override void Clear()
+        {
+            PitchLow = 0;
+            PitchHigh = 0;
+            base.Clear();
+        }
+
+        public static void ParseFast(byte[] data, ref int offset)
+        {
+            offset += 2;
         }
     }
 }

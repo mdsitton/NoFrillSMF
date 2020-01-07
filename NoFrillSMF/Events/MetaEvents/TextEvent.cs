@@ -1,5 +1,6 @@
 ﻿using System;
 using NoFrill.Common;
+using NoFrillSMF.Chunks;
 
 namespace NoFrillSMF.Events.MetaEvents
 {
@@ -7,9 +8,9 @@ namespace NoFrillSMF.Events.MetaEvents
     {
         public string Text = "";
 
-        public override void Parse(byte[] data, ref int offset)
+        public override void Parse(byte[] data, ref int offset, TrackParseState state)
         {
-            ParseStatus(data, ref offset);
+            ParseStatus(data, ref offset, state);
             Text = data.ReadString(ref offset, (int)Size);
         }
 
@@ -19,4 +20,9 @@ namespace NoFrillSMF.Events.MetaEvents
             data.WriteString(ref offset, Text);
         }
     }
+
+    public class TrackNameEvent : TextEvent
+    {
+    }
+
 }

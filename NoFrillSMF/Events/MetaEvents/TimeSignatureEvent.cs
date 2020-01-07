@@ -1,5 +1,6 @@
 ﻿using System;
 using NoFrill.Common;
+using NoFrillSMF.Chunks;
 
 namespace NoFrillSMF.Events.MetaEvents
 {
@@ -10,9 +11,9 @@ namespace NoFrillSMF.Events.MetaEvents
         public byte MidiClocksPerMet;
         public byte ThirtySecondsPerQuarterNote;
 
-        public override void Parse(byte[] data, ref int offset)
+        public override void Parse(byte[] data, ref int offset, TrackParseState state)
         {
-            ParseStatus(data, ref offset);
+            ParseStatus(data, ref offset, state);
             Numerator = data.ReadByte(ref offset);
             Denominator = data.ReadByte(ref offset);
             MidiClocksPerMet = data.ReadByte(ref offset);

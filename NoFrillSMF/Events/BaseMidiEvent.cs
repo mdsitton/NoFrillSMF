@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using NoFrill.Common;
+using NoFrillSMF.Chunks;
 
 namespace NoFrillSMF.Events
 {
@@ -10,9 +11,9 @@ namespace NoFrillSMF.Events
 
         public byte Channel;
 
-        protected void ParseStatus(byte[] data, ref int offset)
+        protected void ParseStatus(byte[] data, ref int offset, TrackParseState state)
         {
-
+            Status = state.status;
             eventType = (EventType)(Status & 0xF0);
             Channel = (byte)(Status & 0xF);
         }
@@ -24,5 +25,12 @@ namespace NoFrillSMF.Events
                 data.WriteByte(ref offset, Status); // TODO - merge Message/Channel instead.
             }
         }
+
+        public override void Clear()
+        {
+            Channel = 0;
+            base.Clear();
+        }
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using NoFrill.Common;
+using NoFrillSMF.Chunks;
 
 namespace NoFrillSMF.Events.MetaEvents
 {
@@ -7,9 +8,9 @@ namespace NoFrillSMF.Events.MetaEvents
     {
         public byte[] dataBlock;
 
-        public override void Parse(byte[] data, ref int offset)
+        public override void Parse(byte[] data, ref int offset, TrackParseState state)
         {
-            ParseStatus(data, ref offset);
+            ParseStatus(data, ref offset, state);
             if (Size > 0)
             {
                 dataBlock = new byte[Size];

@@ -1,25 +1,38 @@
 ﻿using NoFrill.Common;
+using NoFrillSMF.Chunks;
 
 namespace NoFrillSMF.Events.MidiEvents
 {
     public class ControlChangeEvent : BaseMidiEvent
     {
-        public byte controller;
-        public byte controlValue;
+        public byte Controller;
+        public byte ControlValue;
 
-        public override void Parse(byte[] data, ref int offset)
+        public override void Parse(byte[] data, ref int offset, TrackParseState state)
         {
-            ParseStatus(data, ref offset);
+            ParseStatus(data, ref offset, state);
 
-            controller = data.ReadByte(ref offset);
-            controlValue = data.ReadByte(ref offset);
+            Controller = data.ReadByte(ref offset);
+            ControlValue = data.ReadByte(ref offset);
         }
 
         public override void Compose(byte[] data, ref int offset)
         {
             ComposeStatus(data, ref offset);
-            data.WriteByte(ref offset, controller);
-            data.WriteByte(ref offset, controlValue);
+            data.WriteByte(ref offset, Controller);
+            data.WriteByte(ref offset, ControlValue);
+        }
+
+        public override void Clear()
+        {
+            Controller = 0;
+            ControlValue = 0;
+            base.Clear();
+        }
+
+        public static void ParseFast(byte[] data, ref int offset)
+        {
+            offset += 2;
         }
     }
 }

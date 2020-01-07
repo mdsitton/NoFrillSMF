@@ -9,8 +9,8 @@ namespace NoFrillSMF.Events.MidiEvents
         public NoteOffEvent ToOffEvent()
         {
             var off = new NoteOffEvent();
-            off.note = note;
-            off.velocity = velocity;
+            off.Note = Note;
+            off.Velocity = Velocity;
             off.Status = Status;
             off.Size = Size;
             off.DeltaTick = DeltaTick;
