@@ -3,14 +3,14 @@ using NoFrillSMF.Chunks;
 
 namespace NoFrillSMF.Events.MidiEvents
 {
-    public class ControlChangeEvent : BaseMidiEvent
+    public class ControlChangeEvent : MidiChannelEvent
     {
         public byte Controller;
         public byte ControlValue;
 
         public override void Parse(byte[] data, ref int offset, TrackParseState state)
         {
-            ParseStatus(data, ref offset, state);
+            ChannelEventParsing.ParseStatus(this, data, ref offset, state);
 
             Controller = data.ReadByte(ref offset);
             ControlValue = data.ReadByte(ref offset);
@@ -18,7 +18,7 @@ namespace NoFrillSMF.Events.MidiEvents
 
         public override void Compose(byte[] data, ref int offset)
         {
-            ComposeStatus(data, ref offset);
+            ChannelEventParsing.ComposeStatus(this, data, ref offset);
             data.WriteByte(ref offset, Controller);
             data.WriteByte(ref offset, ControlValue);
         }
@@ -27,7 +27,14 @@ namespace NoFrillSMF.Events.MidiEvents
         {
             Controller = 0;
             ControlValue = 0;
-            base.Clear();
+            Channel = 0;
+            EventID = 0;
+            DeltaTick = 0;
+            TickTime = 0;
+            Status = 0;
+            eventType = default;
+            Size = 0;
+            Previous = null;
         }
 
         public static void ParseFast(byte[] data, ref int offset)

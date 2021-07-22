@@ -8,20 +8,22 @@ using System.Collections.Generic;
 
 namespace NoFrillSMF.Benchmark
 {
-    [MonoJob]
+    [CoreJob]
     [MemoryDiagnoser]
     public class MidiBench
     {
-        string fileName = "C:\\Users\\Matt\\development\\NoFrillSMF\\NoFrillSMF.Tests\\midifiles\\rb4midi.mid";
+        string fileName = "E:\\development\\NoFrillSMF\\NoFrillSMF.Tests\\midifiles\\rb4midi.mid";
 
 
         MidiFile reader = new MidiFile(false);
 
-        static Events.MidiEvents.NoteOnEvent eventTemplate = new Events.MidiEvents.NoteOnEvent();
+        byte[] midiData;
+
+        static Events.MidiEvents.NoteEvent eventTemplate = new Events.MidiEvents.NoteEvent();
         static Events.MetaEvents.TrackNameEvent eventTemplateText = new Events.MetaEvents.TrackNameEvent();
-        static List<Events.MidiEvents.NoteOnEvent> types = new List<Events.MidiEvents.NoteOnEvent> { eventTemplate };
+        static List<Events.MidiEvents.NoteEvent> types = new List<Events.MidiEvents.NoteEvent> { eventTemplate };
         static List<Events.MetaEvents.TrackNameEvent> typesText = new List<Events.MetaEvents.TrackNameEvent> { eventTemplateText };
-        static Chunks.TrackChunk.TrackEventFilter<Events.MidiEvents.NoteOnEvent> filterObj = new Chunks.TrackChunk.TrackEventFilter<Events.MidiEvents.NoteOnEvent>(eventTemplates: types);
+        static Chunks.TrackChunk.TrackEventFilter<Events.MidiEvents.NoteEvent> filterObj = new Chunks.TrackChunk.TrackEventFilter<Events.MidiEvents.NoteEvent>(eventTemplates: types);
         static Chunks.TrackChunk.TrackEventFilter<Events.MetaEvents.TrackNameEvent> filterObjText = new Chunks.TrackChunk.TrackEventFilter<Events.MetaEvents.TrackNameEvent>(eventTemplates: typesText);
 
         [GlobalSetup]
@@ -31,6 +33,7 @@ namespace NoFrillSMF.Benchmark
             {
                 reader.ReadData(fs);
             }
+            midiData = File.ReadAllBytes(fileName);
             eventTemplate.eventType = Events.EventType.NoteOn;
             eventTemplateText.eventType = Events.EventType.TrackName;
         }
@@ -136,7 +139,7 @@ namespace NoFrillSMF.Benchmark
 
                 // difficultyLoaded.Clear();
 
-                foreach (var ev in track.ParseEvents<Events.MidiEvents.NoteOnEvent>(filterObj))
+                foreach (var ev in track.ParseEvents<Events.MidiEvents.NoteEvent>(filterObj))
                 {
                     var noteDiff = SelectNoteDifficulty(ev.Note);
 
@@ -151,21 +154,21 @@ namespace NoFrillSMF.Benchmark
             // return difficultyLoaded;
         }
 
-        // [Benchmark]
-        // public void NoFrillSMF()
-        // {
-        //     MidiFile reader = new MidiFile();
-        //     using (FileStream fs = File.OpenRead(fileName))
-        //     {
-        //         reader.ReadData(fs);
-        //     }
-        //     reader.Parse();
-        // }
+        [Benchmark]
+        public void NoFrillSMF()
+        {
+            MidiFile reader = new MidiFile();
+            using (MemoryStream fs = new MemoryStream(midiData))
+            {
+                reader.ReadData(fs);
+            }
+            reader.Parse();
+        }
 
         [Benchmark]
         public void NAudioMidi()
         {
-            using (FileStream fs = File.OpenRead(fileName))
+            using (MemoryStream fs = new MemoryStream(midiData))
             {
                 var mf = new NAudio.Midi.MidiFile(fs, false);
             }

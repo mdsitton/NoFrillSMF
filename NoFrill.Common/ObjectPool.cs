@@ -1,38 +1,56 @@
-using System;
 using System.Collections.Concurrent;
+using System;
+using NoFrill.Common;
+using System.Collections.Generic;
 
-namespace NoFrill.Common
+public class ObjectPool
 {
-    public class ObjectPool<T> where T : IPoolable, new()
+    private static void ThrowPoolTypeNotDefined()
     {
-        private ConcurrentStack<T> _objects;
-        private Func<T> _objectGenerator;
+        throw new ArgumentException("Pool object type has not been defined, Please use AddType<T>() to define all pooled types.");
+    }
 
-        public ObjectPool(Func<T> objectGenerator)
+    private static void ThrowNullRef()
+    {
+        throw new NullReferenceException("Pool object type has not been defined, Please use AddType<T>() to define all pooled types.");
+    }
+
+    protected Dictionary<Type, Stack<IPoolable>> pool = new Dictionary<Type, Stack<IPoolable>>();
+
+    public void AddType<T>() where T : class, IPoolable, new()
+    {
+        pool[typeof(T)] = new Stack<IPoolable>();
+    }
+
+    public T Rent<T>() where T : class, IPoolable, new()
+    {
+        if (pool.TryGetValue(typeof(T), out var typePool))
         {
-            if (objectGenerator == null) throw new ArgumentNullException("objectGenerator");
-            _objects = new ConcurrentStack<T>();
-            _objectGenerator = objectGenerator;
-            // _objects.Push(new T());
+            if (typePool.Count > 0)
+            {
+                T typeFinal = typePool.Pop() as T;
+                return typeFinal;
+            }
         }
-
-        public T Request()
+        else
         {
-            T item;
-
-            if (_objects.TryPop(out item))
-                return item;
-
-            item = _objectGenerator();
-            // item.Pool = this;
-            return item;
+            ThrowPoolTypeNotDefined();
         }
+        return new T();
+    }
 
-        public void Return(T item)
+    public void Return<T>(T obj) where T : class, IPoolable, new()
+    {
+        if (obj == null) ThrowNullRef();
+
+        if (pool.TryGetValue(obj.GetType(), out var typePool))
         {
-            item.Clear();
-
-            _objects.Push(item);
+            obj.Clear();
+            typePool.Push(obj);
+        }
+        else
+        {
+            ThrowPoolTypeNotDefined();
         }
     }
 }

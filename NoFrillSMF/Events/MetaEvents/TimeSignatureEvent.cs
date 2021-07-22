@@ -4,7 +4,7 @@ using NoFrillSMF.Chunks;
 
 namespace NoFrillSMF.Events.MetaEvents
 {
-    public class TimeSignatureEvent : BaseMetaEvent
+    public class TimeSignatureEvent : BaseTrackEvent
     {
         public byte Numerator;
         public byte Denominator;
@@ -13,7 +13,7 @@ namespace NoFrillSMF.Events.MetaEvents
 
         public override void Parse(byte[] data, ref int offset, TrackParseState state)
         {
-            ParseStatus(data, ref offset, state);
+            this.ParseStatus(data, ref offset, state);
             Numerator = data.ReadByte(ref offset);
             Denominator = data.ReadByte(ref offset);
             MidiClocksPerMet = data.ReadByte(ref offset);
@@ -22,11 +22,22 @@ namespace NoFrillSMF.Events.MetaEvents
 
         public override void Compose(byte[] data, ref int offset)
         {
-            ComposeStatus(data, ref offset);
+            this.ComposeStatus(data, ref offset);
             data.WriteByte(ref offset, Numerator);
             data.WriteByte(ref offset, Denominator);
             data.WriteByte(ref offset, MidiClocksPerMet);
             data.WriteByte(ref offset, ThirtySecondsPerQuarterNote);
+        }
+
+        public override void Clear()
+        {
+            EventID = 0;
+            DeltaTick = 0;
+            TickTime = 0;
+            Status = 0;
+            eventType = default;
+            Size = 0;
+            Previous = null;
         }
     }
 }

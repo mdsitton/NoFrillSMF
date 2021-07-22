@@ -16,14 +16,14 @@ namespace NoFrillSMF.Chunks
         public uint Length { get; private set; }
 
         protected byte[] chunkData;
-        protected List<TrackEvent> events = new List<TrackEvent>();
+        protected List<BaseTrackEvent> events = new List<BaseTrackEvent>();
         protected TrackParseState state = new TrackParseState();
 
-        Stack<NoteOnEvent>[] notesActive;
+        Stack<NoteEvent>[] notesActive;
         readonly bool noteEventMatching;
 
 
-        public struct TrackEventFilter<TEvent> where TEvent : TrackEvent
+        public struct TrackEventFilter<TEvent> where TEvent : BaseTrackEvent
         {
             public UInt32 Size;
             public UInt64 TickTimeStart;
@@ -57,7 +57,7 @@ namespace NoFrillSMF.Chunks
             // Allocate a stack per note per channel, to handle so we can handle matching note on/off events with O(1) complexity.
             // This is important for handling extremely large midi files.
             if (noteEventMatching)
-                notesActive = Enumerable.Repeat(new Stack<NoteOnEvent>(), 128 * 16).ToArray();
+                notesActive = Enumerable.Repeat(new Stack<NoteEvent>(), 128 * 16).ToArray();
         }
 
         public void Read(Stream data, uint chunkLength)
@@ -74,20 +74,18 @@ namespace NoFrillSMF.Chunks
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public EventType? ProcessEvents(byte[] data, ref int offset, ref Chunks.TrackParseState state)
+        public EventType ProcessEvents(byte[] data, ref int offset, ref Chunks.TrackParseState state)
         {
-            EventType? evType = null;
             switch (state.status)
             {
                 case (byte)EventType.MetaEvent:
                     offset++; // Seek over status
-                    evType = (EventType)data.ReadByte(offset);
-                    break;
+                    return (EventType)data.ReadByte(offset);
                 case (byte)EventType.SysexEventStart:
                 case (byte)EventType.SysexEventEscape:
                     offset++; // Seek over status
-                    offset += (int)data.ReadVlv(ref offset);
-                    break;
+                    // offset += (int)data.ReadVlv(ref offset);
+                    return (EventType)state.status;
                 default:
 
                     if ((state.status & 0xF0) >= 0x80)
@@ -97,7 +95,7 @@ namespace NoFrillSMF.Chunks
                     else
                     {
 
-                        if (!(state.eventElement is BaseMidiEvent))
+                        if (!(state.eventElement is MidiChannelEvent))
                         {
                             Console.WriteLine("Warning: Incorrect running status found, assuming last midi event status");
                         }
@@ -106,36 +104,35 @@ namespace NoFrillSMF.Chunks
                     }
 
 
-                    evType = (EventType)(state.status & 0xF0);
-                    break;
+                    return (EventType)(state.status & 0xF0);
             }
-            return evType;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint CalcIndex(byte note, byte channel) => ((uint)channel << 7) | note; // equivelent to channel * 128 + note
 
         public void MatchNoteEvents()
         {
             // Handle note on/off event matching, as well as converting vel 0 noteon's to note off events.
-            if (state.eventElement is NoteOnEvent noteOn)
+            if (state.eventElement.eventType == EventType.NoteOn && state.eventElement is NoteEvent note)
             {
-                uint key = CalcIndex(noteOn.Note, noteOn.Channel);
-                if (noteOn.Velocity == 0 && notesActive[key].Count > 0)
+                uint key = CalcIndex(note.Note, note.Channel);
+                if (note.Velocity == 0 && notesActive[key].Count > 0)
                 {
-                    NoteOffEvent off = noteOn.ToOffEvent();
-                    NoteOnEvent on = notesActive[key].Pop();
-                    on.NoteOff = off;
-                    state.eventElement = off;
+                    note.eventType = EventType.NoteOff;
+                    NoteEvent on = notesActive[key].Pop();
+                    on.NoteOff = note;
+                    state.eventElement = note;
                 }
                 else
                 {
-                    notesActive[key].Push(noteOn);
+                    notesActive[key].Push(note);
                 }
             }
-            else if (state.eventElement is NoteOffEvent noteOff)
+            else if (state.eventElement.eventType == EventType.NoteOff && state.eventElement is NoteEvent noteOff)
             {
                 uint key = CalcIndex(noteOff.Note, noteOff.Channel);
-                NoteOnEvent on = notesActive[key].Pop();
+                NoteEvent on = notesActive[key].Pop();
                 on.NoteOff = noteOff;
             }
         }
@@ -148,34 +145,31 @@ namespace NoFrillSMF.Chunks
                 state.deltaTicks = chunkData.ReadVlv(ref state.trackDataPosition);
                 state.tickTime += state.deltaTicks;
 
-                if (state.eventElement is BaseMidiEvent)
+                if (state.eventElement is MidiChannelEvent)
                 {
                     state.prevMidiStatus = state.status;
                 }
 
                 state.status = chunkData.ReadByte(state.trackDataPosition);
 
-                EventType? type = ProcessEvents(chunkData, ref state.trackDataPosition, ref state);
+                EventType type = ProcessEvents(chunkData, ref state.trackDataPosition, ref state);
 
-                if (type != null)
-                {
-                    TrackEvent ev = EventUtils.MidiEventFactory(type.Value);
-                    ev.Previous = state.eventElement;
-                    state.eventElement = ev;
-                    state.eventElement.DeltaTick = state.deltaTicks;
-                    state.eventElement.EventID = events.Count;
-                    state.eventElement.Parse(chunkData, ref state.trackDataPosition, state);
+                BaseTrackEvent ev = EventUtils.MidiEventFactory(type);
+                ev.Previous = state.eventElement;
+                state.eventElement = ev;
+                state.eventElement.DeltaTick = state.deltaTicks;
+                state.eventElement.EventID = events.Count;
+                state.eventElement.Parse(chunkData, ref state.trackDataPosition, state);
 
-                    if (noteEventMatching)
-                        MatchNoteEvents();
+                if (noteEventMatching)
+                    MatchNoteEvents();
 
-                    events.Add(state.eventElement);
-                }
+                events.Add(state.eventElement);
 
             }
         }
 
-        public IEnumerable<TEvent> ParseEvents<TEvent>(TrackEventFilter<TEvent> typeFilter) where TEvent : TrackEvent
+        public IEnumerable<TEvent> ParseEvents<TEvent>(TrackEventFilter<TEvent> typeFilter) where TEvent : BaseTrackEvent, new()
         {
             // TODO - Implement FastSeek Method for all Event types for use by this incremental parser.
             // TODO - Implement state cloning for mid-parse forward searching.
@@ -197,41 +191,38 @@ namespace NoFrillSMF.Chunks
                 localState.deltaTicks = chunkData.ReadVlv(ref localState.trackDataPosition);
                 localState.tickTime += localState.deltaTicks;
 
-                if (localState.eventElement is BaseMidiEvent)
+                if (localState.eventElement is MidiChannelEvent)
                 {
                     localState.prevMidiStatus = localState.status;
                 }
 
                 localState.status = chunkData.ReadByte(localState.trackDataPosition);
 
-                EventType? typeFound = ProcessEvents(chunkData, ref localState.trackDataPosition, ref localState);
+                EventType typeFound = ProcessEvents(chunkData, ref localState.trackDataPosition, ref localState);
 
-                if (typeFound != null)
+                bool found = false;
+                foreach (var t in typeFilter.EventTemplates)
                 {
-                    bool found = false;
-                    foreach (var t in typeFilter.EventTemplates)
+                    if (t.eventType == typeFound)
                     {
-                        if (t.eventType == typeFound.Value)
-                        {
-                            TEvent ev = TrackEvent.GetStaticEvents(typeFound.Value) as TEvent;
+                        TEvent ev = TrackEventUtils.eventPool.Rent<TEvent>();
 
-                            ev.Parse(chunkData, ref localState.trackDataPosition, localState);
-                            ev.TickTime = localState.tickTime;
-                            localState.eventElement = ev;
-                            localState.eventElement.DeltaTick = localState.deltaTicks;
-                            localState.eventElement.EventID = localState.eventCount++;
+                        ev.Parse(chunkData, ref localState.trackDataPosition, localState);
+                        ev.TickTime = localState.tickTime;
+                        localState.eventElement = ev;
+                        localState.eventElement.DeltaTick = localState.deltaTicks;
+                        localState.eventElement.EventID = localState.eventCount++;
 
-                            yield return ev;
-                            TrackEvent.ReturnStaticEvents(ev);
-                            found = true;
-                            break;
-                        }
+                        yield return ev;
+                        TrackEventUtils.eventPool.Return(ev);
+                        found = true;
+                        break;
                     }
-                    if (!found)
-                    {
-                        TrackEvent.FastParse(typeFound.Value, chunkData, ref localState.trackDataPosition);
-                        localState.eventCount++;
-                    }
+                }
+                if (!found)
+                {
+                    TrackEventUtils.FastParse(typeFound, chunkData, ref localState.trackDataPosition);
+                    localState.eventCount++;
                 }
             }
         }

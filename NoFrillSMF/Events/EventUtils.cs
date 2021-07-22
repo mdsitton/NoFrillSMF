@@ -8,14 +8,13 @@ namespace NoFrillSMF.Events
     public static class EventUtils
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static TrackEvent MidiEventFactory(EventType message)
+        public static BaseTrackEvent MidiEventFactory(EventType message)
         {
             switch (message)
             {
                 case EventType.NoteOn:
-                    return new MidiEvents.NoteOnEvent();
                 case EventType.NoteOff:
-                    return new MidiEvents.NoteOffEvent();
+                    return new MidiEvents.NoteEvent();
                 case EventType.ControlChange:
                     return new MidiEvents.ControlChangeEvent();
                 case EventType.ProgramChange:
@@ -63,7 +62,7 @@ namespace NoFrillSMF.Events
             }
         }
 
-        public static T FindLast<T>(TrackEvent current) where T : TrackEvent
+        public static T FindLast<T>(BaseTrackEvent current) where T : BaseTrackEvent
         {
             while (true)
             {
@@ -73,9 +72,9 @@ namespace NoFrillSMF.Events
             }
         }
 
-        public delegate bool SentinelCheck<T>(T val) where T : TrackEvent;
+        public delegate bool SentinelCheck<T>(T val) where T : BaseTrackEvent;
 
-        public static T FindLast<T>(TrackEvent current, SentinelCheck<T> check) where T : TrackEvent
+        public static T FindLast<T>(BaseTrackEvent current, SentinelCheck<T> check) where T : BaseTrackEvent
         {
             T val;
             while ((current = current.Previous) != null)
