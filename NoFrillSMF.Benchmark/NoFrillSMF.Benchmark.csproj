@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net5.0;net472</TargetFrameworks>
-    <LangVersion>8.0</LangVersion>
+    <TargetFrameworks>net5.0;net48</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.0" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
     <PackageReference Include="LiteNetLib" Version="0.8.3.1" />
+    <PackageReference Include="Melanchall.DryWetMidi" Version="5.2.1" />
     <PackageReference Include="NAudio" Version="1.10.0" />
     <PackageReference Include="System.Memory" Version="4.5.3" />
   </ItemGroup>

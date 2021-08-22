@@ -25,9 +25,16 @@ namespace NoFrillSMF.Events
 
         public static void ParseFast(byte[] data, ref int offset)
         {
-            offset += 1;
-            uint size = data.ReadVlv(ref offset);
-            offset += (int)size;
+            int size = data[offset + 1];
+            // Slow path, rarely almost never used in practice 99% of messages only have 1 byte for message length
+            if ((size & 0x80) != 0)
+            {
+                offset++;
+                size = (int)data.ReadVlv(ref offset);
+                offset += size;
+                return;
+            }
+            offset += size + 2;
         }
     }
 }

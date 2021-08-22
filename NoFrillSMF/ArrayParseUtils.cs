@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using NoFrill.Common;
 
 namespace NoFrillSMF
 {
@@ -51,15 +52,25 @@ namespace NoFrillSMF
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UInt32 ReadVlv(this byte[] data, ref int offset)
         {
-            byte c = data[offset++];
+
+            uint c = data[offset++];
             UInt32 value = c & 0x7FU;
 
 
-            while ((c & 0x80) != 0)
+            if ((c & 0x80) != 0)
             {
                 c = data[offset++];
-                value <<= 7;
-                value |= c & 0x7FU;
+                value = (value << 7) | (c & 0x7FU);
+            }
+            if ((c & 0x80) != 0)
+            {
+                c = data[offset++];
+                value = (value << 7) | (c & 0x7FU);
+            }
+            if ((c & 0x80) != 0)
+            {
+                c = data[offset++];
+                value = (value << 7) | (c & 0x7FU);
             }
 
             return value;

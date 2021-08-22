@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.IO;
 using System.Runtime;
 using NoFrillSMF;
+using BenchmarkDotNet.Jobs;
 
 namespace NoFrillSMF.Benchmark
 {
@@ -143,6 +144,95 @@ namespace NoFrillSMF.Benchmark
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining), TargetedPatchingOptOut("Inline across assemplies")]
+        public static int GetBitCount(uint bits)
+        {
+            int count = 0;
+
+            // This takes advantage of the fact that when you subtrack 1 from a bit it sets the bits under it all to 1
+            // Which when & with itself clears both the original bit and all lower bits and exposes the next bit to count.
+
+            while (bits != 0)
+            {
+                count++;
+                bits &= (uint)(bits - 1);
+            }
+
+            return count;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining), TargetedPatchingOptOut("Inline across assemplies")]
+        public static UInt32 ReadVlvNoBranch(this byte[] data, ref int offset)
+        {
+            uint fullData = Unsafe.As<byte, UInt32>(ref data[offset]);
+
+            uint nextMask = 0x80;
+
+            uint v1b = (nextMask & fullData);
+            nextMask = v1b << 8;
+
+            uint v2b = (nextMask & fullData);
+            nextMask = v2b << 8;
+
+            uint v3b = (nextMask & fullData);
+
+            uint value;
+
+            if (v3b != 0)
+            {
+                value = ((fullData & 0x7FU) << 21) |
+                        ((fullData & 0x7F00U) << 6) |
+                        ((fullData & 0x7F0000U) >> 9) |
+                        ((fullData & 0x7F000000U) >> 24);
+                offset += 4;
+            }
+            else if (v2b != 0)
+            {
+                value = ((fullData & 0x7FU) << 14) |
+                        ((fullData & 0x7F00U) >> 1) |
+                        ((fullData & 0x7F0000U) >> 16);
+                offset += 3;
+            }
+            else if (v1b != 0)
+            {
+                value = (fullData & 0x7FU) << 7 | ((fullData & 0x7F00U) >> 8);
+                offset += 2;
+            }
+            else
+            {
+                value = (fullData & 0x7FU);
+                offset += 1;
+            }
+
+            return value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining), TargetedPatchingOptOut("Inline across assemplies")]
+        public static UInt32 ReadVlvStandardUnroll(this byte[] data, ref int offset)
+        {
+            uint c = data[offset++];
+            UInt32 value = c & 0x7FU;
+
+            // uint c1 = 0, c2 = 0, c3 = 0;
+            if ((c & 0x80) != 0)
+            {
+                c = data[offset++];
+                value = (value << 7) | (c & 0x7FU);
+            }
+            if ((c & 0x80) != 0)
+            {
+                c = data[offset++];
+                value = (value << 7) | (c & 0x7FU);
+            }
+            if ((c & 0x80) != 0)
+            {
+                c = data[offset++];
+                value = (value << 7) | (c & 0x7FU);
+            }
+
+            return value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining), TargetedPatchingOptOut("Inline across assemplies")]
         public static UInt32 ReadVlvStandard(this byte[] data, ref int offset)
         {
             byte c = data[offset++];
@@ -195,7 +285,9 @@ namespace NoFrillSMF.Benchmark
     }
 
 
-    [MonoJob, CoreJob]
+    [SimpleJob(RuntimeMoniker.Net48)]
+    // [SimpleJob(RuntimeMoniker.Mono)]
+    [SimpleJob(RuntimeMoniker.Net50)]
     public class VlvBench
     {
 
@@ -209,9 +301,22 @@ namespace NoFrillSMF.Benchmark
         {
             UInt32[] outData = new UInt32[count];
 
+            // for (int i = 0; i <= 127; ++i)
+            // {
+            //     outData[i] = (UInt32)(i * i * i * i);
+            // }
+            // for (int i = 128; i <= 255; ++i)
+            // {
+            //     outData[i] = (UInt32)(i * i);
+            // }
+            // for (int i = 256; i <= 383; ++i)
+            // {
+            //     outData[i] = (UInt32)(i * i * i);
+            // }
             for (int i = 0; i < count; ++i)
             {
-                outData[i] = (UInt32)(i * 2684354);
+                var newI = i + 15;
+                outData[i] = (UInt32)(newI * newI * newI * newI);
             }
             return outData;
         }
@@ -219,7 +324,7 @@ namespace NoFrillSMF.Benchmark
         [GlobalSetup]
         public void SetupData()
         {
-            itemCount = 100;
+            itemCount = 128;
             data = new byte[itemCount * 4];
             srcData = GenerateValues(itemCount);
 
@@ -249,18 +354,18 @@ namespace NoFrillSMF.Benchmark
         }
 
         [Benchmark]
-        public void ReadInt8UnsafePerformance()
+        public void ReadVlvPerformanceNoBranch()
         {
-            byte[] dataRead = new byte[itemCount];
+            UInt32[] dataRead = new UInt32[itemCount];
 
             int pos = 0;
             for (int i = 0; i < itemCount; ++i)
             {
-                dataRead[i] = data.ReadUInt8Unsafe(ref pos);
+                dataRead[i] = data.ReadVlvNoBranch(ref pos);
             }
             // if (!dataRead.SequenceEqual(srcData))
             // {
-            //     throw new Exception("Bad");
+            //     throw new Exception($"Bad val:{dataRead[itemCount - 1]} good val: {srcData[itemCount - 1]}");
             // }
         }
 
@@ -281,14 +386,14 @@ namespace NoFrillSMF.Benchmark
         }
 
         [Benchmark]
-        public void ReadVlvPerformanceNFSMF()
+        public void ReadVlvPerformanceUnroll()
         {
             UInt32[] dataRead = new UInt32[itemCount];
 
             int pos = 0;
             for (int i = 0; i < itemCount; ++i)
             {
-                dataRead[i] = data.ReadVlv(ref pos);
+                dataRead[i] = data.ReadVlvStandardUnroll(ref pos);
             }
             // if (!dataRead.SequenceEqual(srcData))
             // {
