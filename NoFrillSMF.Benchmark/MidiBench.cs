@@ -11,25 +11,26 @@ using Melanchall.DryWetMidi.Core;
 namespace NoFrillSMF.Benchmark
 {
     [SimpleJob(RuntimeMoniker.Net48)]
+    // [SimpleJob(RuntimeMoniker.Net50)]
     // [SimpleJob(RuntimeMoniker.Mono)]
-    [SimpleJob(RuntimeMoniker.Net50)]
+    [SimpleJob(RuntimeMoniker.Net70)]
     [MemoryDiagnoser]
     public class MidiBench
     {
-        string fileName = "E:\\development\\NoFrillSMF\\NoFrillSMF.Tests\\midifiles\\rb4midi.mid";
+        string fileName = "D:\\development\\NoFrillSMF\\NoFrillSMF.Tests\\midifiles\\rb4midi.mid";
 
 
         MidiFile reader = new MidiFile(false);
 
         byte[] midiData;
 
-        static List<NoFrillSMF.Events.EventType> types = new List<NoFrillSMF.Events.EventType> { NoFrillSMF.Events.EventType.NoteOn, NoFrillSMF.Events.EventType.NoteOff };
+        static List<Events.EventType> types = new List<Events.EventType> { Events.EventType.NoteOn, Events.EventType.NoteOff };
         static Chunks.TrackChunk.TrackEventFilter filterObj = new Chunks.TrackChunk.TrackEventFilter(eventTemplates: types);
 
-        static List<NoFrillSMF.Events.EventType> typesText = new List<NoFrillSMF.Events.EventType> { NoFrillSMF.Events.EventType.TrackName };
+        static List<Events.EventType> typesText = new List<Events.EventType> { Events.EventType.TrackName };
         static Chunks.TrackChunk.TrackEventFilter filterObjText = new Chunks.TrackChunk.TrackEventFilter(eventTemplates: typesText);
 
-        static List<NoFrillSMF.Events.EventType> typesLyrics = new List<NoFrillSMF.Events.EventType> { NoFrillSMF.Events.EventType.Text, NoFrillSMF.Events.EventType.Lyrics };
+        static List<Events.EventType> typesLyrics = new List<Events.EventType> { Events.EventType.Text, Events.EventType.Lyrics };
         static Chunks.TrackChunk.TrackEventFilter filterObjLyric = new Chunks.TrackChunk.TrackEventFilter(eventTemplates: typesLyrics);
 
         [GlobalSetup]
@@ -70,7 +71,7 @@ namespace NoFrillSMF.Benchmark
         /// </summary>
         /// <param name="noteNumber">The midi note value</param>
         /// <returns>Returns <see cref="Song.Difficulty"> derrived from the note value.</returns>
-        public static Nullable<Difficulty> SelectNoteDifficulty(int noteNumber)
+        public static Difficulty? SelectNoteDifficulty(int noteNumber)
         {
             if (noteNumber >= 58 && noteNumber <= 66)
                 return Difficulty.Easy;
@@ -187,7 +188,7 @@ namespace NoFrillSMF.Benchmark
         public void DryWetMidiFull()
         {
             var tracks = new Melanchall.DryWetMidi.Core.TrackChunk[_numOfInstruments * _numOfDifficulties];
-            bool[] difficultyLoaded = new bool[4];
+            var difficultyLoaded = new bool[_numOfInstruments, _numOfDifficulties];
 
             using (MemoryStream fs = new MemoryStream(midiData))
             {
@@ -209,12 +210,14 @@ namespace NoFrillSMF.Benchmark
                         }
                     }
                 }
+                int trackIndex = 0;
                 foreach (var track in tracks)
                 {
                     if (track == null)
                     {
                         continue;
                     }
+                    int found = 0;
                     foreach (var ev in track.Events)
                     {
                         if ((ev.EventType == MidiEventType.NoteOn || ev.EventType == MidiEventType.NoteOff) && ev is Melanchall.DryWetMidi.Core.NoteEvent noteEv)
@@ -227,10 +230,20 @@ namespace NoFrillSMF.Benchmark
 
                             var val = (int)noteDiff.Value;
 
-                            difficultyLoaded[val] = true;
+                            if (difficultyLoaded[trackIndex, val] == false)
+                            {
+                                difficultyLoaded[trackIndex, val] = true;
+                                found++;
+                            }
+
+                            if (found == 4)
+                            {
+                                break;
+                            }
                         }
                     }
                 }
+                trackIndex++;
             }
         }
 
@@ -238,7 +251,7 @@ namespace NoFrillSMF.Benchmark
         // public void NoFrillSMF()
         // {
         //     MidiFile reader = new MidiFile();
-        //     using (MemoryStream fs = new MemoryStream(midiData))
+        //     using (var fs = File.OpenRead(fileName))
         //     {
         //         reader.ReadData(fs);
         //     }
@@ -248,7 +261,7 @@ namespace NoFrillSMF.Benchmark
         // [Benchmark]
         // public void NAudioMidi()
         // {
-        //     using (MemoryStream fs = new MemoryStream(midiData))
+        //     using (var fs = File.OpenRead(fileName))
         //     {
         //         var mf = new NAudio.Midi.MidiFile(fs, false);
         //     }
@@ -257,7 +270,7 @@ namespace NoFrillSMF.Benchmark
         // [Benchmark]
         // public void DryWetMidi()
         // {
-        //     using (MemoryStream fs = new MemoryStream(midiData))
+        //     using (var fs = File.OpenRead(fileName))
         //     {
         //         Melanchall.DryWetMidi.Core.MidiFile.Read(fs);
         //     }

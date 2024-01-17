@@ -2,16 +2,15 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net5.0;net48</TargetFrameworks>
+    <TargetFrameworks>net7.0;net48</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
-    <PackageReference Include="LiteNetLib" Version="0.8.3.1" />
-    <PackageReference Include="Melanchall.DryWetMidi" Version="5.2.1" />
-    <PackageReference Include="NAudio" Version="1.10.0" />
-    <PackageReference Include="System.Memory" Version="4.5.3" />
+    <PackageReference Include="benchmarkdotnet" Version="0.13.12" />
+    <PackageReference Include="Melanchall.DryWetMidi" Version="7.0.2" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="BinaryEx" Version="0.4.0" />
   </ItemGroup>
 
   <ItemGroup>

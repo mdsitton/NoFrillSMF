@@ -3,10 +3,13 @@ using System;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Jobs;
 
 namespace NoFrillSMF.Benchmark
 {
-    [MonoJob]
+    [SimpleJob(RuntimeMoniker.Net48)]
+    [SimpleJob(RuntimeMoniker.Net50)]
+    [SimpleJob(RuntimeMoniker.Mono)]
     public class FileBench
     {
         string fileName = "/home/matthew/development/NoFrillSMF/NoFrillSMF.Tests/midifiles/notes-9k.mid";

@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System;
-using NoFrill.Common;
+using BinaryEx;
 using NoFrillSMF.Chunks;
 
 namespace NoFrillSMF.Events
@@ -13,7 +13,7 @@ namespace NoFrillSMF.Events
             metaEvent.Status = state.status;
             metaEvent.eventType = (EventType)data.ReadByte(ref offset);
             Debug.Assert(metaEvent.Status == 0xFF);
-            metaEvent.Size = data.ReadVlv(ref offset);
+            metaEvent.Size = (int)data.ReadVlv(ref offset);
         }
 
         public static void ComposeStatus<T>(this T metaEvent, byte[] data, ref int offset) where T : BaseTrackEvent

@@ -1,5 +1,5 @@
 ﻿using System;
-using NoFrill.Common;
+using BinaryEx;
 using NoFrillSMF.Chunks;
 
 namespace NoFrillSMF.Events.MidiEvents

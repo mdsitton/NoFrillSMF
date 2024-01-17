@@ -3,10 +3,13 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Jobs;
 
 namespace NoFrillSMF.Benchmark
 {
-    [MonoJob, CoreJob]
+    [SimpleJob(RuntimeMoniker.Net48)]
+    [SimpleJob(RuntimeMoniker.Net50)]
+    [SimpleJob(RuntimeMoniker.Mono)]
     public class CopyBench
     {
         byte[] bytes = Encoding.UTF8.GetBytes("MyProperty1");

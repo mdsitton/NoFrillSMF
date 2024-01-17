@@ -1,7 +1,7 @@
 using System.Text;
 using System;
 using System.IO;
-using NoFrill.Common;
+using BinaryEx;
 
 namespace NoFrillSMF.Chunks
 {
@@ -31,6 +31,8 @@ namespace NoFrillSMF.Chunks
 
         public void Write(Stream data)
         {
+            data.WriteString(TypeStr);
+            data.WriteUInt32BE(Length);
             data.WriteUInt16BE(Format);
             data.WriteUInt16BE(TrackCount);
             data.WriteUInt16BE(rawDivision);

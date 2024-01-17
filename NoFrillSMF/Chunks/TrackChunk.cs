@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
-using NoFrill.Common;
+using BinaryEx;
 using NoFrillSMF.Events;
 using NoFrillSMF.Events.MidiEvents;
 using System.Linq;

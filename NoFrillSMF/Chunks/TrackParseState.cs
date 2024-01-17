@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using NoFrillSMF.Events;
 using NoFrillSMF.Events.MidiEvents;
 
@@ -10,8 +11,8 @@ namespace NoFrillSMF.Chunks
     {
         public int eventCount;
         public int trackDataPosition;
-        public UInt64 tickTime;
-        public UInt32 deltaTicks;
+        public ulong tickTime;
+        public uint deltaTicks;
         public BaseTrackEvent eventElement;
         public byte prevMidiStatus;
         public byte status;
@@ -23,7 +24,7 @@ namespace NoFrillSMF.Chunks
         public readonly bool noteEventMatching;
         // TODO - Add last tempo event tracking,
 
-        public TrackParseState(int _trackDataPosition = 0, UInt64 _tickTime = 0, UInt32 _deltaTicks = 0, BaseTrackEvent _eventElement = null, byte _prevMidiStatus = 0, byte _status = 0, bool noteEventMatching = false)
+        public TrackParseState(int _trackDataPosition = 0, ulong _tickTime = 0, uint _deltaTicks = 0, BaseTrackEvent _eventElement = null, byte _prevMidiStatus = 0, byte _status = 0, bool noteEventMatching = false)
         {
 
             // In some cases we don't want to use a cached stack array because we may want to parse something totally diffenent and not break an existing parser state

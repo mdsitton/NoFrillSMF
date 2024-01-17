@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using System;
-using NoFrill.Common;
+using BinaryEx;
 using System.Runtime.CompilerServices;
 
 namespace NoFrillSMF.Events
@@ -58,7 +58,7 @@ namespace NoFrillSMF.Events
                 case EventType.SequencerSpecific:
                     return new MetaEvents.UnsupportedEvent();
                 default:
-                    throw new Exception("Unknown event type");
+                    throw new Exception($"Unknown event type {(byte)message}");
             }
         }
 

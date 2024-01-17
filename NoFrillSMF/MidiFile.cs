@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using NoFrill.Common;
+using BinaryEx;
 
 using NoFrillSMF.Chunks;
 using System.Text;
@@ -36,7 +36,6 @@ namespace NoFrillSMF
                 string str = data.ReadString(size: 4);
                 UInt32 chunkLength = data.ReadUInt32BE();
 
-
                 if (chunkLength > fileSize)
                 {
                     // TODO - Turn this into an exception?
@@ -55,7 +54,7 @@ namespace NoFrillSMF
             }
         }
 
-        public IEnumerable<TrackChunk> GetTrackChunks()
+        public IList<TrackChunk> GetTrackChunks()
         {
             return trackChunks;
         }

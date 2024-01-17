@@ -6,7 +6,8 @@ using System.Buffers.Binary;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using NoFrill.Common;
+using BinaryEx;
+using BenchmarkDotNet.Jobs;
 
 namespace NoFrillSMF.Benchmark
 {
@@ -126,7 +127,9 @@ namespace NoFrillSMF.Benchmark
         }
     }
 
-    [MonoJob, CoreJob]
+    [SimpleJob(RuntimeMoniker.Net48)]
+    [SimpleJob(RuntimeMoniker.Net50)]
+    [SimpleJob(RuntimeMoniker.Mono)]
     public class BinaryBench
     {
         DataTest test;
